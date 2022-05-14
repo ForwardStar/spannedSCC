@@ -6,7 +6,7 @@ bool cmp(std::vector<int> i, std::vector<int> j) {
 
 }
 
-void tarjan(int now, int &t) {
+void OnlineSearch::tarjan(int now, int &t) {
 
     dfsOrder[now] = ++t;
     lowestOrder[now] = t;
@@ -40,7 +40,7 @@ void tarjan(int now, int &t) {
 
 }
 
-std::stringstream onlineSearch(TemporalGraph * Graph, int ts, int te) {
+std::stringstream OnlineSearch::onlineSearch(TemporalGraph * Graph, int ts, int te) {
 
     int t = 0;
     std::stringstream Ans;
@@ -79,12 +79,27 @@ std::stringstream onlineSearch(TemporalGraph * Graph, int ts, int te) {
 
 }
 
+OnlineSearch::OnlineSearch(int n) {
+
+    dfsOrder = new int[n];
+    lowestOrder = new int[n];
+    outOfStack = new bool[n];
+    Vis = new bool[n];
+
+}
+
+OnlineSearch::~OnlineSearch() {
+
+    delete [] dfsOrder;
+    delete [] lowestOrder;
+    delete [] outOfStack;
+    delete [] Vis;
+
+}
+
 void online(TemporalGraph * Graph, char * query_file, char * output_file) {
 
-    dfsOrder = new int[Graph->numOfVertices()];
-    lowestOrder = new int[Graph->numOfVertices()];
-    outOfStack = new bool[Graph->numOfVertices()];
-    Vis = new bool[Graph->numOfVertices()];
+    OnlineSearch *solver = new OnlineSearch(Graph->numOfVertices());
     
     int ts, te;
     int query_num = 0;
@@ -101,9 +116,11 @@ void online(TemporalGraph * Graph, char * query_file, char * output_file) {
     int start_time = time(NULL);
     while (fin >> ts >> te) {
         // Perform SCC Tarjan search
-        fout << onlineSearch(Graph, ts, te).str() << std::endl;
+        fout << solver->onlineSearch(Graph, ts, te).str() << std::endl;
         putProcess(double(++i) / query_num, difftime(time(NULL), start_time));
     }
+
+    delete solver;
 
     std::cout << "Average: " << timeFormatting(difftime(time(NULL), start_time) / query_num).str() << std::endl;
 
