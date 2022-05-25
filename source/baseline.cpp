@@ -32,25 +32,39 @@ void BaselineIndex::unioN(int ts, int u, int v, int t) {
 
 }
 
-void BaselineIndex::tarjan(TemporalGraph * G, int now, int &t, int &ts, int &te) {
+void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
 
-    dfsOrder[now] = ++t;
+    inOrder[now] = ++t;
     lowestOrder[now] = t;
     Vis[now] = true;
     Stack.push(now);
 
-    TemporalGraph::Edge * edge = G->getHeadEdge(now);
-    while (edge) {
-        if (!Vis[edge->to]) {
-            tarjan(G, edge->to, t, ts, te);
+    std::vector<int> to_delete;
+
+    std::unordered_set<int>::iterator it;
+    for (it = out_label[now].begin(); it != out_label[now].end(); it++) {
+        int mount = find(ts, *it);
+        if (mount != *it) {
+            to_delete.push_back(*it);
         }
-        if (!outOfStack[edge->to]) {
-            lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[edge->to]);
+        if (!Vis[mount]) {
+            tarjan(mount, t, ts, te);
         }
-        edge = edge->next;
+        if (!outOfStack[mount]) {
+            lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
+        }
     }
 
-    if (dfsOrder[now] == lowestOrder[now]) {
+    std::vector<int>::iterator it_delete;
+    for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
+        int mount = find(ts, *it_delete);
+        if (out_label[now].find(mount) == out_label[now].end()) {
+            out_label[now].insert(mount);
+        }
+        out_label[now].erase(*it_delete);
+    }
+
+    if (inOrder[now] == lowestOrder[now]) {
         std::vector<int> CurrentSCC;
         while (Stack.top() != now) {
             outOfStack[Stack.top()] = true;
@@ -64,7 +78,22 @@ void BaselineIndex::tarjan(TemporalGraph * G, int now, int &t, int &ts, int &te)
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
             unioN(ts, *it, *CurrentSCC.begin(), te);
         }
+        int mount = find(ts, *CurrentSCC.begin());
+        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
+            if (*it == mount) {
+                continue;
+            }
+            std::unordered_set<int>::iterator it1;
+            for (it1 = out_label[*it].begin(); it1 != out_label[*it].end(); it1++) {
+                int mount_edge = find(ts, *it1);
+                if (out_label[mount].find(mount_edge) == out_label[mount].end()) {
+                    out_label[mount].insert(mount_edge);
+                }
+            }
+        }
     }
+
+    outOrder[now] = ++t;
 
 }
 
@@ -135,8 +164,11 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     size = new int[n];
     outOfStack = new bool[n];
     Vis = new bool[n];
-    dfsOrder = new int[n];
+    inOrder = new int[n];
+    outOrder = new int[n];
     lowestOrder = new int[n];
+
+    out_label = new std::unordered_set<int>[n]();
 
     for (int ts = 0; ts <= tmax; ++ts) {
         L[ts] = new int[n];
@@ -149,22 +181,52 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     
     for (int ts = 0; ts <= tmax; ++ts) {
         for (int u = 0; u < n; ++u) {
+            out_label[u].clear();
+            outOfStack[u] = 0;
+            Vis[u] = 0;
             size[u] = 1;
         }
-        for (int te = ts; te <= tmax; ++te) {
-            int t = 0;
-            TemporalGraph * G = new TemporalGraph(Graph, ts, te);
-            std::vector<std::pair<int, int>>::iterator it;
+
+        std::vector<std::pair<int, int>>::iterator it;
+        for (it = Graph->temporal_edge[ts].begin(); it != Graph->temporal_edge[ts].end(); it++) {
+            if (out_label[it->first].find(it->second) == out_label[it->first].end()) {
+                out_label[it->first].insert(it->second);
+            }
+        }
+
+        int t = 0;
+        for (int u = 0; u < n; ++u) {
+            if (!Vis[u]) {
+                tarjan(u, t, ts, ts);
+            }
+        }
+
+        for (int te = ts + 1; te <= tmax; ++te) {
+            t = 0;
             for (int u = 0; u < n; ++u) {
-                if (!Vis[u]) {
-                    tarjan(G, u, t, ts, te);
+                outOfStack[u] = 0;
+                if (find(ts, u) != u) {
+                    Vis[u] = 1;
+                }
+                else {
+                    Vis[u] = 0;
+                }
+            }
+            for (it = Graph->temporal_edge[te].begin(); it != Graph->temporal_edge[te].end(); it++) {
+                int mountu = find(ts, it->first);
+                int mountv = find(ts, it->second);
+                if (mountu == mountv || (outOrder[mountu] > outOrder[mountv] && inOrder[mountu] < inOrder[mountv])) {
+                    continue;
+                }
+                if (out_label[mountu].find(mountv) == out_label[mountu].end()) {
+                    out_label[mountu].insert(mountv);
                 }
             }
             for (int u = 0; u < n; ++u) {
-                outOfStack[u] = 0;
-                Vis[u] = 0;
+                if (!Vis[u]) {
+                    tarjan(u, t, ts, te);
+                }
             }
-            delete G;
         }
         putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
     }
@@ -172,8 +234,10 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     delete [] size;
     delete [] outOfStack;
     delete [] Vis;
-    delete [] dfsOrder;
+    delete [] inOrder;
+    delete [] outOrder;
     delete [] lowestOrder;
+    delete [] out_label;
 
 }
 

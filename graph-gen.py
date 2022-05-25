@@ -109,7 +109,8 @@ def normalize(filename):
 
 if __name__ == "__main__":
     # download datasets
-    DATASETS_URL = ["http://konect.cc/files/download.tsv.dblp-cite.tar.bz2"]
+    DATASETS_URL = ["http://konect.cc/files/download.tsv.dblp-cite.tar.bz2",
+                    "http://konect.cc/files/download.tsv.flickr-growth.tar.bz2"]
     if os.path.isdir("datasets") is False or len(os.listdir("datasets")) < len(DATASETS_URL):
         print("Downloading datasets...")
         if os.path.isdir("datasets") is False:
@@ -154,7 +155,7 @@ if __name__ == "__main__":
         thread_move_data_file = threading.Thread(target=showProcess)
         thread_move_data_file.start()
         if int(user_input) == 0:
-            open("graph.txt", "w").write("0 2 1\n0 4 1\n0 5 2\n1 4 2\n1 5 3\n2 3 3\n2 4 4\n1 2 5\n4 5 5")
+            open("graph.txt", "w").write("0 1 0\n1 2 0\n2 0 0\n2 3 0\n3 2 1\n3 4 0\n4 5 0\n5 3 0")
         else:
             move_data_file(file_ls[int(user_input) - 1], "graph.txt")
         is_finished = True

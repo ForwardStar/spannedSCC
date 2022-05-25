@@ -14,6 +14,7 @@ void OnlineSearch::tarjan(int now, int &t) {
     Stack.push(now);
 
     TemporalGraph::Edge * edge = G->getHeadEdge(now);
+    
     while (edge) {
         if (!Vis[edge->to]) {
             tarjan(edge->to, t);

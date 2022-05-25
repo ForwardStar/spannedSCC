@@ -1,7 +1,10 @@
 #include "commonfunctions.h"
 #include "temporal_graph.h"
+#include "till_graph.h"
+#include "till.h"
 #include "online_search.h"
 #include "baseline.h"
+#include "till-kruskal.h"
 
 TemporalGraph * build(char * argv[]) {
 
@@ -27,6 +30,7 @@ int main(int argc, char * argv[]) {
     }
 
     TemporalGraph * Graph = build(argv);
+    // Graph->shrink_to_fit();
     int vertex_num = Graph->numOfVertices();
 
     if (std::strcmp(argv[4], "Online") == 0) {
@@ -52,6 +56,29 @@ int main(int argc, char * argv[]) {
         int query_end_time = time(NULL);
         std::cout << "Query completed in " << timeFormatting(difftime(query_end_time, query_start_time)).str() << std::endl;
         std::cout << "Baseline completed!" << std::endl;
+    }
+
+    if (std::strcmp(argv[4], "TILL-Kruskal") == 0) {
+        std::cout << "Running TILL-Kruskal..." << std::endl;
+        std::cout << "Building TILL graph..." << std::endl;
+        TILL_Graph * G = new TILL_Graph(argv[1], true);
+        std::cout << "Constructing TILL index..." << std::endl;
+        TILL * TILL_Index = new TILL(G);
+        TILL_Index->construct();
+        std::cout << "Constructing the index structure..." << std::endl;
+        int index_construction_start_time = time(NULL);
+        TILL_Kruskal *Index = new TILL_Kruskal(Graph, TILL_Index);
+        int index_construction_end_time = time(NULL);
+        std::cout << "Index construction completed in " << timeFormatting(difftime(index_construction_end_time, index_construction_start_time)).str() << std::endl;
+        delete TILL_Index;
+        delete G;
+        delete Graph;
+        std::cout << "Solving queries..." << std::endl;
+        int query_start_time = time(NULL);
+        TILL_kruskal(Index, vertex_num, argv[2], argv[3]);
+        int query_end_time = time(NULL);
+        std::cout << "Query completed in " << timeFormatting(difftime(query_end_time, query_start_time)).str() << std::endl;
+        std::cout << "TILL-Kruskal completed!" << std::endl;
     }
 
     int end_time = time(NULL);

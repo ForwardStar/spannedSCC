@@ -2,6 +2,7 @@
 #define COMMONFUNCTIONS
 
 #include <ctime>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
