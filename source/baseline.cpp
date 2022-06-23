@@ -42,7 +42,7 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
     std::vector<int> to_delete;
 
     std::unordered_set<int>::iterator it;
-    for (it = out_label[now].begin(); it != out_label[now].end(); it++) {
+    for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
         int mount = find(ts, *it);
         if (mount != *it) {
             to_delete.push_back(*it);
@@ -58,10 +58,10 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
     std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
         int mount = find(ts, *it_delete);
-        if (out_label[now].find(mount) == out_label[now].end()) {
-            out_label[now].insert(mount);
+        if (outLabel[now].find(mount) == outLabel[now].end()) {
+            outLabel[now].insert(mount);
         }
-        out_label[now].erase(*it_delete);
+        outLabel[now].erase(*it_delete);
     }
 
     if (inOrder[now] == lowestOrder[now]) {
@@ -84,10 +84,10 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
                 continue;
             }
             std::unordered_set<int>::iterator it1;
-            for (it1 = out_label[*it].begin(); it1 != out_label[*it].end(); it1++) {
+            for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
                 int mount_edge = find(ts, *it1);
-                if (out_label[mount].find(mount_edge) == out_label[mount].end()) {
-                    out_label[mount].insert(mount_edge);
+                if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
+                    outLabel[mount].insert(mount_edge);
                 }
             }
         }
@@ -167,8 +167,7 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     inOrder = new int[n];
     outOrder = new int[n];
     lowestOrder = new int[n];
-
-    out_label = new std::unordered_set<int>[n]();
+    outLabel = new std::unordered_set<int>[n]();
 
     for (int ts = 0; ts <= tmax; ++ts) {
         L[ts] = new int[n];
@@ -181,7 +180,7 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     
     for (int ts = 0; ts <= tmax; ++ts) {
         for (int u = 0; u < n; ++u) {
-            out_label[u].clear();
+            outLabel[u].clear();
             outOfStack[u] = 0;
             Vis[u] = 0;
             size[u] = 1;
@@ -189,8 +188,8 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
 
         std::vector<std::pair<int, int>>::iterator it;
         for (it = Graph->temporal_edge[ts].begin(); it != Graph->temporal_edge[ts].end(); it++) {
-            if (out_label[it->first].find(it->second) == out_label[it->first].end()) {
-                out_label[it->first].insert(it->second);
+            if (outLabel[it->first].find(it->second) == outLabel[it->first].end()) {
+                outLabel[it->first].insert(it->second);
             }
         }
 
@@ -215,11 +214,15 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
             for (it = Graph->temporal_edge[te].begin(); it != Graph->temporal_edge[te].end(); it++) {
                 int mountu = find(ts, it->first);
                 int mountv = find(ts, it->second);
+
+                // already in the same SCC, or mountu is an ancestor of mountv
                 if (mountu == mountv || (outOrder[mountu] > outOrder[mountv] && inOrder[mountu] < inOrder[mountv])) {
                     continue;
                 }
-                if (out_label[mountu].find(mountv) == out_label[mountu].end()) {
-                    out_label[mountu].insert(mountv);
+
+                // shift edges to the mounted vertices of SCCs
+                if (outLabel[mountu].find(mountv) == outLabel[mountu].end()) {
+                    outLabel[mountu].insert(mountv);
                 }
             }
             for (int u = 0; u < n; ++u) {
@@ -237,7 +240,7 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     delete [] inOrder;
     delete [] outOrder;
     delete [] lowestOrder;
-    delete [] out_label;
+    delete [] outLabel;
 
 }
 

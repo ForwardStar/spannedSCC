@@ -19,7 +19,7 @@ class BaselineIndex {
         bool *outOfStack;
         bool *Vis;
 
-        std::unordered_set<int> *out_label;
+        std::unordered_set<int> *outLabel;
 
         std::stack<int> Stack;
 
