@@ -4,12 +4,6 @@
 #include "commonfunctions.h"
 
 class TemporalGraph {
-
-    private:
-
-        int *L;
-
-        int find(int u);
        
     public:
 
@@ -66,9 +60,6 @@ class TemporalGraph {
 
         // addEdge(u, v, t): add an edge (u, v, t) to the graph.
         void addEdge(int u, int v, int t);
-
-        // shrink_to_fit(): minimize the edge set.
-        void shrink_to_fit();
 
         TemporalGraph() {}
         TemporalGraph(char *graph_file, char *graph_type);
