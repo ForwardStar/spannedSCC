@@ -110,7 +110,8 @@ def normalize(filename):
 if __name__ == "__main__":
     # download datasets
     DATASETS_URL = ["http://konect.cc/files/download.tsv.dblp-cite.tar.bz2",
-                    "http://konect.cc/files/download.tsv.flickr-growth.tar.bz2"]
+                    "http://konect.cc/files/download.tsv.flickr-growth.tar.bz2",
+                    "http://konect.cc/files/download.tsv.digg-friends.tar.bz2"]
     if os.path.isdir("datasets") is False or len(os.listdir("datasets")) < len(DATASETS_URL):
         print("Downloading datasets...")
         if os.path.isdir("datasets") is False:
