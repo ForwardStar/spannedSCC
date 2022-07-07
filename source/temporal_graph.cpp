@@ -79,7 +79,7 @@ TemporalGraph::TemporalGraph(TemporalGraph * Graph, int ts, int te) {
     while (head_edge.size() < n) {
         head_edge.push_back(nullptr);
     }
-
+    
     std::vector<std::pair<int, int>>::iterator it;
 
     for (int t = ts; t <= te; ++t) {
@@ -92,6 +92,7 @@ TemporalGraph::TemporalGraph(TemporalGraph * Graph, int ts, int te) {
             }
         }
     }
+
     
 }
 
