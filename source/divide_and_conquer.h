@@ -15,6 +15,7 @@ class DCindex{
     int *inOrder;
     int *lowestOrder;
     int *f;
+    int *F;
     bool *outOfStack;
     bool *Vis;
     std::unordered_set<long long> *edge;

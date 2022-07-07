@@ -182,7 +182,7 @@ void DCindex::div(int ts,int l,int r){
     if(l==r){
         int t=0;
         clear();
-        for(int u=0;u<n;u++)f[u]=find(ts,u);
+        for(int u=0;u<n;u++)f[u]=F[u];
         std::unordered_set<long long>::iterator it;
         for (it = edge[l].begin(); it != edge[l].end(); it++) {
             long long u=(*it)>>32ll,v=(*it)&((1ll<<32)-1);
@@ -200,12 +200,13 @@ void DCindex::div(int ts,int l,int r){
                 tarjan(u,t,ts,l);
             }
         }
+        for(int i=0;i<n;i++)F[i]=find(ts,i);
         return ;
     }
     
     int mid=(l+r)>>1;
     clear();
-    for(int u=0;u<n;u++)f[u]=find(ts,u);
+    for(int u=0;u<n;u++)f[u]=F[u];
     for(int i=l;i<=mid;i++){
         std::unordered_set<long long>::iterator it;
         if(edge[i].empty()){
@@ -286,6 +287,7 @@ DCindex::DCindex(TemporalGraph * Graph){
     outLabel = new std::unordered_set<int>[n]();
     edge = new std::unordered_set<long long>[n]();
     f = new int[n];
+    F = new int[n];
     for (int ts = 0; ts <= tmax; ++ts) {
         L[ts] = new int[n];
         T[ts] = new int[n];
@@ -308,6 +310,7 @@ DCindex::DCindex(TemporalGraph * Graph){
                 edge[t].insert(alfa);
             }
         }
+        for(int i=0;i<n;i++)F[i]=i;
         div(ts,ts,tmax);
     }
 }
