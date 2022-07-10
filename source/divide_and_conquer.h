@@ -4,7 +4,7 @@
 class DCindex{
     private:
 
-
+    int eefind(int u);
     int efind(int u);
     int find(int ts,int u);
     void unioN(int ts, int u, int v, int t);
@@ -15,9 +15,10 @@ class DCindex{
     int *inOrder;
     int *lowestOrder;
     int *f;
-    int *F;
+    int *sz;
     bool *outOfStack;
     bool *Vis;
+    int tot=0;
     std::unordered_set<long long> *edge;
     std::unordered_set<int> *outLabel;
 

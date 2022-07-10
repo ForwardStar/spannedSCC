@@ -36,7 +36,6 @@ void DCindex::unioN(int ts, int u, int v, int t) {
 
 void DCindex::clear(){
     for (int u = 0; u < n; ++u) {
-        outLabel[u].clear();
         outOfStack[u] = 0;
         Vis[u] = false;
     }
@@ -50,30 +49,27 @@ void DCindex::tarjan(int now, int t, int ts, int te) {
     Stack.push(now);
 
     std::vector<int> to_delete;
-
     std::unordered_set<int>::iterator it;
     for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
-        int mount = find(ts,*it);
+        int mount = efind(*it);
         if (mount != *it) {
             to_delete.push_back(*it);
         }
         if (!Vis[mount]) {
-            tarjan(mount, t, ts, te);
+            tarjan(mount,t,ts,te);
         }
         if (!outOfStack[mount]) {
             lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
         }
     }
-
     std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
-        int mount = find(ts, *it_delete);
+        int mount = efind( *it_delete);
         if (outLabel[now].find(mount) == outLabel[now].end()) {
             outLabel[now].insert(mount);
         }
         outLabel[now].erase(*it_delete);
     }
-
     if (inOrder[now] == lowestOrder[now]) {
         std::vector<int> CurrentSCC;
         while (Stack.top() != now) {
@@ -87,74 +83,12 @@ void DCindex::tarjan(int now, int t, int ts, int te) {
         std::vector<int>::iterator it;
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
             unioN(ts, *it, *CurrentSCC.begin(), te);
-        }
-        int mount = find(ts, *CurrentSCC.begin());
-        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
-            if (*it == mount) {
-                continue;
-            }
-            std::unordered_set<int>::iterator it1;
-            for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
-                int mount_edge = find(ts, *it1);
-                if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
-                    outLabel[mount].insert(mount_edge);
-                }
-            }
-        }
-    }
-
-}
-
-int DCindex::efind(int u){
-    return f[u]==u?f[u]:f[u]=efind(f[u]);
-}
-
-void DCindex::tarjan2(int now, int t) {
-
-    inOrder[now] = ++t;
-    lowestOrder[now] = t;
-    Vis[now] = true;
-    Stack.push(now);
-
-    std::vector<int> to_delete;
-
-    std::unordered_set<int>::iterator it;
-    for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
-        int mount = efind(*it);
-        if (mount != *it) {
-            to_delete.push_back(*it);
-        }
-        if (!Vis[mount]) {
-            tarjan2(mount, t);
-        }
-        if (!outOfStack[mount]) {
-            lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
-        }
-    }
-
-    std::vector<int>::iterator it_delete;
-    for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
-        int mount = efind(*it_delete);
-        if (outLabel[now].find(mount) == outLabel[now].end()) {
-            outLabel[now].insert(mount);
-        }
-        outLabel[now].erase(*it_delete);
-    }
-
-    if (inOrder[now] == lowestOrder[now]) {
-        std::vector<int> CurrentSCC;
-        while (Stack.top() != now) {
-            outOfStack[Stack.top()] = true;
-            CurrentSCC.push_back(Stack.top());
-            Stack.pop();
-        }
-        outOfStack[Stack.top()] = true;
-        CurrentSCC.push_back(Stack.top());
-        Stack.pop();
-        std::vector<int>::iterator it;
-        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
             int x=efind(*it),y=efind(*CurrentSCC.begin());
-            if(x!=y)f[x]=y;
+            if(x!=y){
+                if(sz[x]<sz[y])std::swap(x,y);
+                f[x]=y;
+                sz[y]=sz[x]+1;
+            }
         }
         int mount = efind(*CurrentSCC.begin());
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
@@ -169,94 +103,87 @@ void DCindex::tarjan2(int now, int t) {
                 }
             }
         }
+        CurrentSCC.clear();
+        std::vector<int> (CurrentSCC).swap(CurrentSCC);
     }
 
 }
 
-void DCindex::div(int ts,int l,int r){
-    //printf("%d %d %d\n",ts,l,r);
-    /*if(ts==0){
-        std::cerr<<l<<' '<<r<<'\n';
-    }*/
-    
-    if(l==r){
-        int t=0;
-        clear();
-        for(int u=0;u<n;u++)f[u]=F[u];
-        std::unordered_set<long long>::iterator it;
-        for (it = edge[l].begin(); it != edge[l].end(); it++) {
-            long long u=(*it)>>32ll,v=(*it)&((1ll<<32)-1);
-            int x=efind(u),y=efind(v);
-            /*if(ts==0){
-                std::cerr<<u<<' '<<v<<'\n';
-                std::cerr<<x<<' '<<y<<'#'<<'\n';
-            }*/
-            if (outLabel[x].find(y) == outLabel[x].end()) {
-                outLabel[x].insert(y);
-            }
+int DCindex::efind(int u){
+    if(f[u]==u)return u;
+    int x=efind(f[u]);
+    sz[x]=sz[u]+1;
+    f[u]=x;
+    return x;
+}
+
+void DCindex::tarjan2(int now, int t) {
+
+    inOrder[now] = ++t;
+    lowestOrder[now] = t;
+    Vis[now] = true;
+    Stack.push(now);
+
+    std::vector<int> to_delete;
+    std::unordered_set<int>::iterator it;
+    for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
+        int mount = efind(*it);
+        if (mount != *it) {
+            to_delete.push_back(*it);
         }
-        for(int u=0;u<n;u++){
-            if(!Vis[u]){
-                tarjan(u,t,ts,l);
-            }
+        if (!Vis[mount]) {
+            tarjan2(mount, t);
         }
-        for(int i=0;i<n;i++)F[i]=find(ts,i);
-        return ;
-    }
-    
-    int mid=(l+r)>>1;
-    clear();
-    for(int u=0;u<n;u++)f[u]=F[u];
-    for(int i=l;i<=mid;i++){
-        std::unordered_set<long long>::iterator it;
-        if(edge[i].empty()){
-           // std::cerr<<ts<<' '<<i<<' '<<l<<' '<<r<<'\n';
-            continue;
-        }
-        
-        for (it = edge[i].begin(); it != edge[i].end(); it++) {
-            long long u=(*it)>>32ll,v=(*it)&((1ll<<32)-1);
-            int x=efind(u),y=efind(v);
-            /*if(ts==0){
-                std::cerr<<u<<' '<<v<<'\n';
-                std::cerr<<x<<' '<<y<<'#'<<'\n';
-            }*/
-            if (outLabel[x].find(y) == outLabel[x].end()) {
-                outLabel[x].insert(y);
-            }
+        if (!outOfStack[mount]) {
+            lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
         }
     }
-    
-    
-    for(int u=0;u<n;u++){
-        if(!Vis[u]){
-            int t=0;
-            tarjan2(u,t);
+    std::vector<int>::iterator it_delete;
+    for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
+        int mount = efind( *it_delete);
+        if (outLabel[now].find(mount) == outLabel[now].end()) {
+            outLabel[now].insert(mount);
         }
+        outLabel[now].erase(*it_delete);
     }
-    
-    //std::cerr<<ts<<' '<<l<<' '<<r<<'\n';
-    for(int i=l;i<=mid;i++){
-        std::unordered_set<long long>::iterator it;
-        it = edge[i].begin();
-        while( it != edge[i].end()) {
-            long long u=(*it)>>32,v=(*it)&((1ll<<32)-1);
-            long long x=efind(u),y=efind(v);
+    if (inOrder[now] == lowestOrder[now]) {
+        std::vector<int> CurrentSCC;
+        while (Stack.top() != now) {
+            outOfStack[Stack.top()] = true;
+            CurrentSCC.push_back(Stack.top());
+            Stack.pop();
+        }
+        outOfStack[Stack.top()] = true;
+        CurrentSCC.push_back(Stack.top());
+        Stack.pop();
+        std::vector<int>::iterator it;
+        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
+            int x=efind(*it),y=efind(*CurrentSCC.begin());
             if(x!=y){
-                /*if(ts==0){
-                    std::cerr<<l<<' '<<mid<<'\n';
-                    std::cerr<<u<<' '<<v<<'\n';
-                    std::cerr<<x<<' '<<y<<'!'<<'\n';
-                }*/
-                edge[mid+1].insert((long long)(x<<32ll)+y);
-                edge[i].erase(it++);
+                if(sz[x]<sz[y])std::swap(x,y);
+                f[x]=y;
+                sz[y]=sz[x]+1;
             }
-            else ++it;
         }
+        int mount = efind(*CurrentSCC.begin());
+        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
+            if (*it == mount) {
+                continue;
+            }
+            std::unordered_set<int>::iterator it1;
+            for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
+                int mount_edge = efind(*it1);
+                if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
+                    outLabel[mount].insert(mount_edge);
+                }
+            }
+        }
+        CurrentSCC.clear();
+        std::vector<int> (CurrentSCC).swap(CurrentSCC);
     }
-    div(ts,l,mid);
-    div(ts,mid+1,r);
+
 }
+
 
 DCindex::~DCindex() {
 
@@ -285,9 +212,9 @@ DCindex::DCindex(TemporalGraph * Graph){
     inOrder = new int[n];
     lowestOrder = new int[n];
     outLabel = new std::unordered_set<int>[n]();
-    edge = new std::unordered_set<long long>[n]();
+    edge = new std::unordered_set<long long>[tmax+1]();
     f = new int[n];
-    F = new int[n];
+    sz = new int[n];
     for (int ts = 0; ts <= tmax; ++ts) {
         L[ts] = new int[n];
         T[ts] = new int[n];
@@ -296,27 +223,81 @@ DCindex::DCindex(TemporalGraph * Graph){
             T[ts][u] = ts;
         }
     }
-    for(int u=0;u<n;u++)size[u]=1;
-    
+   
     for(int ts=0;ts<=tmax;ts++){
-        for (int t = ts; t <= tmax; ++t) {
+         for(int t=0;t<=tmax;t++){
             edge[t].clear();
             std::vector<std::pair<int, int>>::iterator it;
             for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
                 long long u = it->first;
                 long long v = it->second;
-                long long alfa=(long long)(u<<32ll)+v;
-            //std::cerr<<u<<' '<<v<<' '<<(alfa>>32)<<' '<<(alfa&((1ll<<32)-1))<<'\n';
+                long long alfa=u*(n+1)+v;
+                if(edge[t].find(alfa)==edge[t].end())
                 edge[t].insert(alfa);
             }
         }
-        for(int i=0;i<n;i++)F[i]=i;
-        div(ts,ts,tmax);
+
+    for(int u=0;u<n;u++)size[u]=1;
+
+    for(int i=(tmax-ts)>>1;i>=1;i>>=1){
+        
+        for(int u=0;u<n;u++){f[u]=u;sz[u]=1;outLabel[u].clear();}
+        for(int j=ts;j<=tmax;j+=i){   
+            if(i>1 && j+i-1>=tmax)continue;
+            for(int u=0;u<n;u++){
+                if(efind(u)!=u) Vis[u]=1;
+                else Vis[u]=0;
+                outOfStack[u]=0;
+            }
+            
+            for(int t=j;t<=std::min(tmax,j+i-1);t++){
+                std::unordered_set<long long>::iterator it;
+                for (it =edge[t].begin(); it != edge[t].end();it++) {
+                    long long u = (*it)/(n+1);
+                    long long v = (*it)-u*(n+1);
+                    int x=efind(u),y=efind(v);
+                    if(outLabel[x].find(y)==outLabel[x].end())
+                        outLabel[x].insert(y);
+                }
+            }
+            for(int u=0;u<n;u++){
+                if(i>1){
+                    if(!Vis[u]){
+                        int t=0;
+                        tarjan2(u,t);
+                    }
+                }
+                else{
+                    if(!Vis[u]){
+                        int t=0;
+                        tarjan(u,t,ts,j);
+                    }
+                }
+            }
+            for(int t=j;t<=std::min(tmax,j+i-1);t++){
+                std::unordered_set<long long>::iterator it;
+                for (it =edge[t].begin(); it != edge[t].end();) {
+                    long long u = (*it)/(n+1);
+                    long long v = (*it)-u*(n+1);
+                    int x=efind(u),y=efind(v);
+                    if(x==y){
+                        it++;
+                    }
+                    else{
+                        if(j+i<=tmax)
+                        edge[j+i].insert(u*(n+1)+v);
+                        edge[t].erase(it++);
+                    }
+                }
+            }
+        }
     }
+    putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
+    }
+    
 }
 
 std::stringstream DCindex::solve(int n, int ts, int te) {
-    
     std::stringstream Ans;
     int *Vis = new int[n];
     std::vector<int> *CurrentCC = new std::vector<int>[n]();
