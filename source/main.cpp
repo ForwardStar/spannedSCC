@@ -2,6 +2,7 @@
 #include "temporal_graph.h"
 #include "online_search.h"
 #include "baseline.h"
+#include "divide_and_conquer.h"
 
 TemporalGraph * build(char * argv[]) {
 
@@ -55,6 +56,21 @@ int main(int argc, char * argv[]) {
         std::cout << "Baseline completed!" << std::endl;
     }
 
+    if (std::strcmp(argv[4], "DC") == 0) {
+        std::cout << "Running DC..." << std::endl;
+        std::cout << "Constructing the index structure..." << std::endl;
+        int index_construction_start_time = time(NULL);
+        DCindex *Index = new DCindex(Graph);
+        int index_construction_end_time = time(NULL);
+        std::cout << "Index construction completed in " << timeFormatting(difftime(index_construction_end_time, index_construction_start_time)).str() << std::endl;
+        delete Graph;
+        std::cout << "Solving queries..." << std::endl;
+        int query_start_time = time(NULL);
+        DC(Index, vertex_num, argv[2], argv[3]);
+        int query_end_time = time(NULL);
+        std::cout << "Query completed in " << timeFormatting(difftime(query_end_time, query_start_time)).str() << std::endl;
+        std::cout << "DC completed!" << std::endl;
+    }
     int end_time = time(NULL);
     std::cout << "Program finished in " << timeFormatting(difftime(end_time, start_time)).str() << std::endl;
 
