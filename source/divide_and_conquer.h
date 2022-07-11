@@ -43,6 +43,7 @@ class DCindex{
         DCindex() {}
         DCindex(TemporalGraph * Graph);
         ~DCindex();
+        
 };
 
 void DC(DCindex *Index, int vertex_num, char * query_file, char * output_file);
