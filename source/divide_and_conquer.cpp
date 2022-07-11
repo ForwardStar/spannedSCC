@@ -1,6 +1,32 @@
 #include "divide_and_conquer.h"
 #include "commonfunctions.h"
 
+int DCindex::fastFind(int u) {
+
+    if (f[u] == u) {
+        return u;
+    }
+    int mountu = fastFind(f[u]);
+    f[u] = mountu;
+    sz[mountu] = sz[u] + 1;
+    return mountu;
+
+}
+
+void DCindex::fastUnion(int u, int v) {
+
+    int mountu = fastFind(u);
+    int mountv = fastFind(v);
+
+    if (mountu != mountv) {
+        if (sz[mountu] < sz[mountv]) {
+            std::swap(mountu, mountv);
+        }
+        f[mountu] = mountv;
+        sz[mountv] = sz[mountu] + 1;
+    }
+
+}
 
 int DCindex::find(int ts, int u) {
     
@@ -34,14 +60,7 @@ void DCindex::unioN(int ts, int u, int v, int t) {
 
 }
 
-void DCindex::clear(){
-    for (int u = 0; u < n; ++u) {
-        outOfStack[u] = 0;
-        Vis[u] = false;
-    }
-}
-
-void DCindex::tarjan(int now, int t, int ts, int te) {
+void DCindex::tarjanOnLeafNode(int now, int &t, int ts, int te) {
 
     inOrder[now] = ++t;
     lowestOrder[now] = t;
@@ -51,12 +70,12 @@ void DCindex::tarjan(int now, int t, int ts, int te) {
     std::vector<int> to_delete;
     std::unordered_set<int>::iterator it;
     for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
-        int mount = efind(*it);
+        int mount = fastFind(*it);
         if (mount != *it) {
             to_delete.push_back(*it);
         }
         if (!Vis[mount]) {
-            tarjan(mount,t,ts,te);
+            tarjanOnLeafNode(mount, t, ts, te);
         }
         if (!outOfStack[mount]) {
             lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
@@ -64,7 +83,7 @@ void DCindex::tarjan(int now, int t, int ts, int te) {
     }
     std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
-        int mount = efind( *it_delete);
+        int mount = fastFind(*it_delete);
         if (outLabel[now].find(mount) == outLabel[now].end()) {
             outLabel[now].insert(mount);
         }
@@ -83,21 +102,16 @@ void DCindex::tarjan(int now, int t, int ts, int te) {
         std::vector<int>::iterator it;
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
             unioN(ts, *it, *CurrentSCC.begin(), te);
-            int x=efind(*it),y=efind(*CurrentSCC.begin());
-            if(x!=y){
-                if(sz[x]<sz[y])std::swap(x,y);
-                f[x]=y;
-                sz[y]=sz[x]+1;
-            }
+            fastUnion(*it, *CurrentSCC.begin());
         }
-        int mount = efind(*CurrentSCC.begin());
+        int mount = fastFind(*CurrentSCC.begin());
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
             if (*it == mount) {
                 continue;
             }
             std::unordered_set<int>::iterator it1;
             for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
-                int mount_edge = efind(*it1);
+                int mount_edge = fastFind(*it1);
                 if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
                     outLabel[mount].insert(mount_edge);
                 }
@@ -109,15 +123,7 @@ void DCindex::tarjan(int now, int t, int ts, int te) {
 
 }
 
-int DCindex::efind(int u){
-    if(f[u]==u)return u;
-    int x=efind(f[u]);
-    sz[x]=sz[u]+1;
-    f[u]=x;
-    return x;
-}
-
-void DCindex::tarjan2(int now, int t) {
+void DCindex::tarjanOnNonLeafNode(int now, int &t) {
 
     inOrder[now] = ++t;
     lowestOrder[now] = t;
@@ -127,12 +133,12 @@ void DCindex::tarjan2(int now, int t) {
     std::vector<int> to_delete;
     std::unordered_set<int>::iterator it;
     for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
-        int mount = efind(*it);
+        int mount = fastFind(*it);
         if (mount != *it) {
             to_delete.push_back(*it);
         }
         if (!Vis[mount]) {
-            tarjan2(mount, t);
+            tarjanOnNonLeafNode(mount, t);
         }
         if (!outOfStack[mount]) {
             lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
@@ -140,7 +146,7 @@ void DCindex::tarjan2(int now, int t) {
     }
     std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
-        int mount = efind( *it_delete);
+        int mount = fastFind(*it_delete);
         if (outLabel[now].find(mount) == outLabel[now].end()) {
             outLabel[now].insert(mount);
         }
@@ -158,21 +164,16 @@ void DCindex::tarjan2(int now, int t) {
         Stack.pop();
         std::vector<int>::iterator it;
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
-            int x=efind(*it),y=efind(*CurrentSCC.begin());
-            if(x!=y){
-                if(sz[x]<sz[y])std::swap(x,y);
-                f[x]=y;
-                sz[y]=sz[x]+1;
-            }
+            fastUnion(*it, *CurrentSCC.begin());
         }
-        int mount = efind(*CurrentSCC.begin());
+        int mount = fastFind(*CurrentSCC.begin());
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
             if (*it == mount) {
                 continue;
             }
             std::unordered_set<int>::iterator it1;
             for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
-                int mount_edge = efind(*it1);
+                int mount_edge = fastFind(*it1);
                 if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
                     outLabel[mount].insert(mount_edge);
                 }
@@ -183,7 +184,6 @@ void DCindex::tarjan2(int now, int t) {
     }
 
 }
-
 
 DCindex::~DCindex() {
 
@@ -212,7 +212,7 @@ DCindex::DCindex(TemporalGraph * Graph){
     inOrder = new int[n];
     lowestOrder = new int[n];
     outLabel = new std::unordered_set<int>[n]();
-    edge = new std::unordered_set<long long>[tmax+1]();
+    edge = new std::unordered_set<long long>[tmax + 1]();
     f = new int[n];
     sz = new int[n];
     for (int ts = 0; ts <= tmax; ++ts) {
@@ -224,80 +224,106 @@ DCindex::DCindex(TemporalGraph * Graph){
         }
     }
    
-    for(int ts=0;ts<=tmax;ts++){
-         for(int t=0;t<=tmax;t++){
+    for (int ts = 0; ts <= tmax; ts++) {
+        for (int t = ts; t <= tmax; t++) {
             edge[t].clear();
             std::vector<std::pair<int, int>>::iterator it;
             for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
                 long long u = it->first;
                 long long v = it->second;
-                long long alfa=u*(n+1)+v;
-                if(edge[t].find(alfa)==edge[t].end())
-                edge[t].insert(alfa);
-            }
-        }
-
-    for(int u=0;u<n;u++)size[u]=1;
-
-    for(int i=(tmax-ts)>>1;i>=1;i>>=1){
-        
-        for(int u=0;u<n;u++){f[u]=u;sz[u]=1;outLabel[u].clear();}
-        for(int j=ts;j<=tmax;j+=i){   
-            if(i>1 && j+i-1>=tmax)continue;
-            for(int u=0;u<n;u++){
-                if(efind(u)!=u) Vis[u]=1;
-                else Vis[u]=0;
-                outOfStack[u]=0;
-            }
-            
-            for(int t=j;t<=std::min(tmax,j+i-1);t++){
-                std::unordered_set<long long>::iterator it;
-                for (it =edge[t].begin(); it != edge[t].end();it++) {
-                    long long u = (*it)/(n+1);
-                    long long v = (*it)-u*(n+1);
-                    int x=efind(u),y=efind(v);
-                    if(outLabel[x].find(y)==outLabel[x].end())
-                        outLabel[x].insert(y);
-                }
-            }
-            for(int u=0;u<n;u++){
-                if(i>1){
-                    if(!Vis[u]){
-                        int t=0;
-                        tarjan2(u,t);
-                    }
-                }
-                else{
-                    if(!Vis[u]){
-                        int t=0;
-                        tarjan(u,t,ts,j);
-                    }
-                }
-            }
-            for(int t=j;t<=std::min(tmax,j+i-1);t++){
-                std::unordered_set<long long>::iterator it;
-                for (it =edge[t].begin(); it != edge[t].end();) {
-                    long long u = (*it)/(n+1);
-                    long long v = (*it)-u*(n+1);
-                    int x=efind(u),y=efind(v);
-                    if(x==y){
-                        it++;
-                    }
-                    else{
-                        if(j+i<=tmax)
-                        edge[j+i].insert(u*(n+1)+v);
-                        edge[t].erase(it++);
-                    }
+                long long alfa = u * (n + 1) + v;
+                if (edge[t].find(alfa) == edge[t].end()) {
+                    edge[t].insert(alfa);
                 }
             }
         }
+
+        for (int u = 0; u < n; ++u) {
+            size[u] = 1;
+        }
+
+        for (int i = (tmax - ts) >> 1; i >= 1; i >>= 1) {
+            for (int u = 0; u < n; ++u) {
+                f[u] = u;
+                sz[u] = 1;
+                outLabel[u].clear();
+            }
+            for (int j = ts; j <= tmax; j += i) {   
+                if (i > 1 && j + i - 1 > tmax) {
+                    continue;
+                }
+                for (int u = 0; u < n; u++) {
+                    if (fastFind(u) != u) {
+                        Vis[u] = 1;
+                    }
+                    else {
+                        Vis[u] = 0;
+                    }
+                    outOfStack[u] = 0;
+                }
+                for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
+                    std::unordered_set<long long>::iterator it;
+                    for (it = edge[t].begin(); it != edge[t].end(); it++) {
+                        long long u = (*it) / (n + 1);
+                        long long v = (*it) - u * (n + 1);
+                        int x = fastFind(u), y = fastFind(v);
+                        if (outLabel[x].find(y) == outLabel[x].end()) {
+                            outLabel[x].insert(y);
+                        }
+                    }
+                }
+                for (int u = 0; u < n; u++) {
+                    int t = 0;
+                    if (i > 1) {
+                        if (!Vis[u]) {
+                            tarjanOnNonLeafNode(u, t);
+                        }
+                    }
+                    else {
+                        if (!Vis[u]) {
+                            tarjanOnLeafNode(u, t, ts, j);
+                        }
+                    }
+                }
+                for (int t = j; t <= std::min(tmax, j + i - 1); t++) {
+                    std::unordered_set<long long>::iterator it;
+                    for (it = edge[t].begin(); it != edge[t].end();) {
+                        long long u = (*it) / (n + 1);
+                        long long v = (*it) - u * (n + 1);
+                        int x = fastFind(u), y = fastFind(v);
+                        if (x == y) {
+                            it++;
+                        }
+                        else {
+                            if (j + i <= tmax) {
+                                long long alfa = u * (n + 1) + v;
+                                if (edge[j + i].find(alfa) == edge[j + i].end()) {
+                                    edge[j + i].insert(alfa);
+                                }
+                            }
+                            edge[t].erase(it++);
+                        }
+                    }
+                }
+            }
+        }
+        putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
     }
-    putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
-    }
+
+    delete [] size;
+    delete [] outOfStack;
+    delete [] Vis;
+    delete [] inOrder;
+    delete [] lowestOrder;
+    delete [] outLabel;
+    delete [] edge;
+    delete [] f;
+    delete [] sz;
     
 }
 
 std::stringstream DCindex::solve(int n, int ts, int te) {
+
     std::stringstream Ans;
     int *Vis = new int[n];
     std::vector<int> *CurrentCC = new std::vector<int>[n]();
