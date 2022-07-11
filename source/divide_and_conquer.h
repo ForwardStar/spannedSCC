@@ -12,10 +12,8 @@ class DCindex{
         int find(int ts,int u);
     
         void unioN(int ts, int u, int v, int t);
-    
-        void tarjanOnLeafNode(int now, int &t, int ts, int te);
         
-        void tarjanOnNonLeafNode(int now, int &t);
+        void tarjan(int now, int &t, int &te);
 
         int *inOrder;
         int *outOrder;
@@ -24,8 +22,10 @@ class DCindex{
         int *sz;
         bool *outOfStack;
         bool *Vis;
+        bool *hasTarjaned;
 
         std::unordered_set<long long> *hashedEdges;
+        std::vector<std::pair<int, int>> *toBeMerged;
         std::unordered_set<int> *outLabel;
 
         std::stack<int> Stack;

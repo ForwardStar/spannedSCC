@@ -60,7 +60,7 @@ void DCindex::unioN(int ts, int u, int v, int t) {
 
 }
 
-void DCindex::tarjanOnLeafNode(int now, int &t, int ts, int te) {
+void DCindex::tarjan(int now, int &t, int &te) {
 
     inOrder[now] = ++t;
     lowestOrder[now] = t;
@@ -75,74 +75,7 @@ void DCindex::tarjanOnLeafNode(int now, int &t, int ts, int te) {
             to_delete.push_back(*it);
         }
         if (!Vis[mount]) {
-            tarjanOnLeafNode(mount, t, ts, te);
-        }
-        if (!outOfStack[mount]) {
-            lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
-        }
-    }
-
-    std::vector<int>::iterator it_delete;
-    for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
-        int mount = fastFind(*it_delete);
-        if (outLabel[now].find(mount) == outLabel[now].end()) {
-            outLabel[now].insert(mount);
-        }
-        outLabel[now].erase(*it_delete);
-    }
-
-    if (inOrder[now] == lowestOrder[now]) {
-        std::vector<int> CurrentSCC;
-        while (Stack.top() != now) {
-            outOfStack[Stack.top()] = true;
-            CurrentSCC.push_back(Stack.top());
-            Stack.pop();
-        }
-        outOfStack[Stack.top()] = true;
-        CurrentSCC.push_back(Stack.top());
-        Stack.pop();
-        std::vector<int>::iterator it;
-        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
-            unioN(ts, *it, *CurrentSCC.begin(), te);
-            fastUnion(*it, *CurrentSCC.begin());
-        }
-        int mount = fastFind(*CurrentSCC.begin());
-        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
-            if (*it == mount) {
-                continue;
-            }
-            std::unordered_set<int>::iterator it1;
-            for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
-                int mount_edge = fastFind(*it1);
-                if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
-                    outLabel[mount].insert(mount_edge);
-                }
-            }
-        }
-        CurrentSCC.clear();
-        std::vector<int> (CurrentSCC).swap(CurrentSCC);
-    }
-
-    outOrder[now] = ++t;
-
-}
-
-void DCindex::tarjanOnNonLeafNode(int now, int &t) {
-
-    inOrder[now] = ++t;
-    lowestOrder[now] = t;
-    Vis[now] = true;
-    Stack.push(now);
-
-    std::vector<int> to_delete;
-    std::unordered_set<int>::iterator it;
-    for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
-        int mount = fastFind(*it);
-        if (mount != *it) {
-            to_delete.push_back(*it);
-        }
-        if (!Vis[mount]) {
-            tarjanOnNonLeafNode(mount, t);
+            tarjan(mount, t, te);
         }
         if (!outOfStack[mount]) {
             lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
@@ -171,6 +104,7 @@ void DCindex::tarjanOnNonLeafNode(int now, int &t) {
         std::vector<int>::iterator it;
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
             fastUnion(*it, *CurrentSCC.begin());
+            toBeMerged[te].push_back(std::pair<int, int>(*it, *CurrentSCC.begin()));
         }
         int mount = fastFind(*CurrentSCC.begin());
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
@@ -217,10 +151,12 @@ DCindex::DCindex(TemporalGraph * Graph) {
     size = new int[n];
     outOfStack = new bool[n];
     Vis = new bool[n];
+    hasTarjaned = new bool[tmax + 1];
     inOrder = new int[n];
     outOrder = new int[n];
     lowestOrder = new int[n];
     hashedEdges = new std::unordered_set<long long>[tmax + 1]();
+    toBeMerged = new std::vector<std::pair<int, int>>[tmax + 1]();
     outLabel = new std::unordered_set<int>[n]();
     f = new int[n];
     sz = new int[n];
@@ -239,6 +175,8 @@ DCindex::DCindex(TemporalGraph * Graph) {
         }
 
         for (int t = ts; t <= tmax; ++t) {
+            hasTarjaned[t] = false;
+            toBeMerged[t].clear();
             hashedEdges[t].clear();
             std::vector<std::pair<int, int>>::iterator it;
             for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
@@ -246,7 +184,7 @@ DCindex::DCindex(TemporalGraph * Graph) {
             }
         }
 
-        for (int i = (tmax - ts + 1) >> 1; i >= 1; i >>= 1) {
+        for (int i = tmax - ts + 1; i >= 1; i >>= 1) {
             for (int u = 0; u < n; ++u) {
                 f[u] = u;
                 sz[u] = 1;
@@ -254,17 +192,7 @@ DCindex::DCindex(TemporalGraph * Graph) {
             }
 
             // start BFS
-            for (int j = ts; j <= tmax; j += i) {   
-                for (int u = 0; u < n; u++) {
-                    if (fastFind(u) != u) {
-                        Vis[u] = 1;
-                    }
-                    else {
-                        Vis[u] = 0;
-                    }
-                    outOfStack[u] = 0;
-                }
-
+            for (int j = ts; j <= tmax; j += i) {
                 // absorb edges in neighbour nodes
                 for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
                     std::unordered_set<long long>::iterator it;
@@ -278,24 +206,41 @@ DCindex::DCindex(TemporalGraph * Graph) {
                                 continue;
                             }
                         }
-                        if (outLabel[mountu].find(mountv) == outLabel[mountv].end()) {
-                            outLabel[mountu].insert(mountv);
-                        }
+                        outLabel[mountu].insert(mountv);
                     }
                 }
 
                 // perform SCC tarjan
-                for (int u = 0; u < n; u++) {
+                int te = std::min(tmax, j + i - 1);
+                if (!hasTarjaned[te]) {
+                    for (int u = 0; u < n; u++) {
+                        if (fastFind(u) != u) {
+                            Vis[u] = 1;
+                        }
+                        else {
+                            Vis[u] = 0;
+                        }
+                        outOfStack[u] = 0;
+                    }
+                    hasTarjaned[te] = true;
                     int t = 0;
-                    if (i > 1) {
+                    for (int u = 0; u < n; u++) {
                         if (!Vis[u]) {
-                            tarjanOnNonLeafNode(u, t);
+                            tarjan(u, t, te);
                         }
                     }
-                    else {
-                        if (!Vis[u]) {
-                            tarjanOnLeafNode(u, t, ts, j);
-                        }
+                }
+                else {
+                    std::vector<std::pair<int, int>>::iterator it;
+                    for (it = toBeMerged[te].begin(); it != toBeMerged[te].end(); it++) {
+                        fastUnion(it->first, it->second);
+                    }
+                }
+
+                if (i == 1) {
+                    std::vector<std::pair<int, int>>::iterator it;
+                    for (it = toBeMerged[te].begin(); it != toBeMerged[te].end(); it++) {
+                        unioN(ts, it->first, it->second, te);
                     }
                 }
 
@@ -326,10 +271,12 @@ DCindex::DCindex(TemporalGraph * Graph) {
     delete [] size;
     delete [] outOfStack;
     delete [] Vis;
+    delete [] hasTarjaned;
     delete [] inOrder;
     delete [] outOrder;
     delete [] lowestOrder;
     delete [] hashedEdges;
+    delete [] toBeMerged;
     delete [] outLabel;
     delete [] f;
     delete [] sz;
