@@ -57,7 +57,7 @@ int main(int argc, char * argv[]) {
     }
 
     if (std::strcmp(argv[4], "DC") == 0) {
-        std::cout << "Running baseline..." << std::endl;
+        std::cout << "Running DC..." << std::endl;
         std::cout << "Constructing the index structure..." << std::endl;
         int index_construction_start_time = time(NULL);
         DCindex *Index = new DCindex(Graph);
