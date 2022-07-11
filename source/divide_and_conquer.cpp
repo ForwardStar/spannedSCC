@@ -180,7 +180,7 @@ DCindex::DCindex(TemporalGraph * Graph) {
             hashedEdges[t].clear();
             std::vector<std::pair<int, int>>::iterator it;
             for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
-                hashedEdges[t].insert(it->first * n + it->second);
+                hashedEdges[t].insert((long long)it->first * n + it->second);
             }
         }
 
