@@ -205,9 +205,9 @@ DCindex::~DCindex() {
 
 }
 
-DCindex::DCindex(TemporalGraph * Graph){
+DCindex::DCindex(TemporalGraph * Graph) {
+
     int start_time = time(NULL);
-    start_time = time(NULL);
 
     n = Graph->numOfVertices();
     m = Graph->numOfEdges();
