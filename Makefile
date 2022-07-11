@@ -1,4 +1,4 @@
-OBJS=commonfunctions.o temporal_graph.o online_search.o baseline.o main.o
+OBJS=commonfunctions.o temporal_graph.o online_search.o baseline.o divide_and_conquer.o main.o
 CC=g++
 CFLAGS=-c -std=c++11 -O3
 
