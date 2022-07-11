@@ -18,14 +18,14 @@ class DCindex{
         void tarjanOnNonLeafNode(int now, int &t);
 
         int *inOrder;
+        int *outOrder;
         int *lowestOrder;
         int *f;
         int *sz;
         bool *outOfStack;
         bool *Vis;
-        int tot = 0;
 
-        std::unordered_set<long long> *edge;
+        std::unordered_set<long long> *hashedEdges;
         std::unordered_set<int> *outLabel;
 
         std::stack<int> Stack;
@@ -43,7 +43,7 @@ class DCindex{
         DCindex() {}
         DCindex(TemporalGraph * Graph);
         ~DCindex();
-        
+
 };
 
 void DC(DCindex *Index, int vertex_num, char * query_file, char * output_file);

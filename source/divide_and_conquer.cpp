@@ -81,6 +81,7 @@ void DCindex::tarjanOnLeafNode(int now, int &t, int ts, int te) {
             lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
         }
     }
+
     std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
         int mount = fastFind(*it_delete);
@@ -89,6 +90,7 @@ void DCindex::tarjanOnLeafNode(int now, int &t, int ts, int te) {
         }
         outLabel[now].erase(*it_delete);
     }
+
     if (inOrder[now] == lowestOrder[now]) {
         std::vector<int> CurrentSCC;
         while (Stack.top() != now) {
@@ -121,6 +123,8 @@ void DCindex::tarjanOnLeafNode(int now, int &t, int ts, int te) {
         std::vector<int> (CurrentSCC).swap(CurrentSCC);
     }
 
+    outOrder[now] = ++t;
+
 }
 
 void DCindex::tarjanOnNonLeafNode(int now, int &t) {
@@ -144,6 +148,7 @@ void DCindex::tarjanOnNonLeafNode(int now, int &t) {
             lowestOrder[now] = std::min(lowestOrder[now], lowestOrder[mount]);
         }
     }
+
     std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
         int mount = fastFind(*it_delete);
@@ -152,6 +157,7 @@ void DCindex::tarjanOnNonLeafNode(int now, int &t) {
         }
         outLabel[now].erase(*it_delete);
     }
+
     if (inOrder[now] == lowestOrder[now]) {
         std::vector<int> CurrentSCC;
         while (Stack.top() != now) {
@@ -183,6 +189,8 @@ void DCindex::tarjanOnNonLeafNode(int now, int &t) {
         std::vector<int> (CurrentSCC).swap(CurrentSCC);
     }
 
+    outOrder[now] = ++t;
+
 }
 
 DCindex::~DCindex() {
@@ -210,9 +218,10 @@ DCindex::DCindex(TemporalGraph * Graph){
     outOfStack = new bool[n];
     Vis = new bool[n];
     inOrder = new int[n];
+    outOrder = new int[n];
     lowestOrder = new int[n];
+    hashedEdges = new std::unordered_set<long long>[tmax + 1]();
     outLabel = new std::unordered_set<int>[n]();
-    edge = new std::unordered_set<long long>[tmax + 1]();
     f = new int[n];
     sz = new int[n];
     for (int ts = 0; ts <= tmax; ++ts) {
@@ -223,35 +232,29 @@ DCindex::DCindex(TemporalGraph * Graph){
             T[ts][u] = ts;
         }
     }
-   
-    for (int ts = 0; ts <= tmax; ts++) {
-        for (int t = ts; t <= tmax; t++) {
-            edge[t].clear();
-            std::vector<std::pair<int, int>>::iterator it;
-            for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
-                long long u = it->first;
-                long long v = it->second;
-                long long alfa = u * (n + 1) + v;
-                if (edge[t].find(alfa) == edge[t].end()) {
-                    edge[t].insert(alfa);
-                }
-            }
-        }
 
+    for (int ts = 0; ts <= tmax; ts++) {
         for (int u = 0; u < n; ++u) {
             size[u] = 1;
         }
 
-        for (int i = (tmax - ts) >> 1; i >= 1; i >>= 1) {
+        for (int t = ts; t <= tmax; ++t) {
+            hashedEdges[t].clear();
+            std::vector<std::pair<int, int>>::iterator it;
+            for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
+                hashedEdges[t].insert(it->first * n + it->second);
+            }
+        }
+
+        for (int i = (tmax - ts + 1) >> 1; i >= 1; i >>= 1) {
             for (int u = 0; u < n; ++u) {
                 f[u] = u;
                 sz[u] = 1;
                 outLabel[u].clear();
             }
+
+            // start BFS
             for (int j = ts; j <= tmax; j += i) {   
-                if (i > 1 && j + i - 1 > tmax) {
-                    continue;
-                }
                 for (int u = 0; u < n; u++) {
                     if (fastFind(u) != u) {
                         Vis[u] = 1;
@@ -261,17 +264,27 @@ DCindex::DCindex(TemporalGraph * Graph){
                     }
                     outOfStack[u] = 0;
                 }
+
+                // absorb edges in neighbour nodes
                 for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
                     std::unordered_set<long long>::iterator it;
-                    for (it = edge[t].begin(); it != edge[t].end(); it++) {
-                        long long u = (*it) / (n + 1);
-                        long long v = (*it) - u * (n + 1);
-                        int x = fastFind(u), y = fastFind(v);
-                        if (outLabel[x].find(y) == outLabel[x].end()) {
-                            outLabel[x].insert(y);
+                    for (it = hashedEdges[t].begin(); it != hashedEdges[t].end(); it++) {
+                        int u = *it / n;
+                        int v = *it % n;
+                        int mountu = fastFind(u);
+                        int mountv = fastFind(v);
+                        if (j != ts) {
+                            if (mountu == mountv || inOrder[mountu] < inOrder[mountv] && outOrder[mountu] > outOrder[mountv]) {
+                                continue;
+                            }
+                        }
+                        if (outLabel[mountu].find(mountv) == outLabel[mountv].end()) {
+                            outLabel[mountu].insert(mountv);
                         }
                     }
                 }
+
+                // perform SCC tarjan
                 for (int u = 0; u < n; u++) {
                     int t = 0;
                     if (i > 1) {
@@ -285,23 +298,23 @@ DCindex::DCindex(TemporalGraph * Graph){
                         }
                     }
                 }
-                for (int t = j; t <= std::min(tmax, j + i - 1); t++) {
+
+                // select an edge set for next level
+                for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
                     std::unordered_set<long long>::iterator it;
-                    for (it = edge[t].begin(); it != edge[t].end();) {
-                        long long u = (*it) / (n + 1);
-                        long long v = (*it) - u * (n + 1);
-                        int x = fastFind(u), y = fastFind(v);
-                        if (x == y) {
+                    for (it = hashedEdges[t].begin(); it != hashedEdges[t].end();) {
+                        int u = *it / n;
+                        int v = *it % n;
+                        int mountu = fastFind(u);
+                        int mountv = fastFind(v);
+                        if (mountu == mountv) {
                             it++;
                         }
                         else {
                             if (j + i <= tmax) {
-                                long long alfa = u * (n + 1) + v;
-                                if (edge[j + i].find(alfa) == edge[j + i].end()) {
-                                    edge[j + i].insert(alfa);
-                                }
+                                hashedEdges[j + i].insert((long long)mountu * n + mountv);
                             }
-                            edge[t].erase(it++);
+                            hashedEdges[t].erase(it++);
                         }
                     }
                 }
@@ -314,9 +327,10 @@ DCindex::DCindex(TemporalGraph * Graph){
     delete [] outOfStack;
     delete [] Vis;
     delete [] inOrder;
+    delete [] outOrder;
     delete [] lowestOrder;
+    delete [] hashedEdges;
     delete [] outLabel;
-    delete [] edge;
     delete [] f;
     delete [] sz;
     
