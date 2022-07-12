@@ -15,6 +15,7 @@
 #include <set>
 #include <unordered_set>
 #include <stack>
+#include <list>
 
 void putProcess(double procedure, int time_used);
 

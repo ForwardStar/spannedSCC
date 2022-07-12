@@ -1,7 +1,7 @@
 #include "commonfunctions.h"
 #include "temporal_graph.h"
 
-class DCindex{
+class DCIndex {
 
     private:
 
@@ -24,8 +24,8 @@ class DCindex{
         bool *Vis;
         bool *hasTarjaned;
 
-        std::unordered_set<long long> *hashedEdges;
-        std::vector<std::pair<int, int>> *toBeMerged;
+        std::list<std::pair<int, int>> *edges;
+        std::list<std::pair<int, int>> *toBeMerged;
         std::unordered_set<int> *outLabel;
 
         std::stack<int> Stack;
@@ -40,10 +40,10 @@ class DCindex{
 
         std::stringstream solve(int n, int ts, int te);
         
-        DCindex() {}
-        DCindex(TemporalGraph * Graph);
-        ~DCindex();
+        DCIndex() {}
+        DCIndex(TemporalGraph * Graph);
+        ~DCIndex();
 
 };
 
-void DC(DCindex *Index, int vertex_num, char * query_file, char * output_file);
+void DC(DCIndex *Index, int vertex_num, char * query_file, char * output_file);

@@ -90,6 +90,7 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
                     outLabel[mount].insert(mount_edge);
                 }
             }
+            outLabel[*it].clear();
         }
     }
 

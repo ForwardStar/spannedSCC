@@ -60,7 +60,7 @@ int main(int argc, char * argv[]) {
         std::cout << "Running DC..." << std::endl;
         std::cout << "Constructing the index structure..." << std::endl;
         int index_construction_start_time = time(NULL);
-        DCindex *Index = new DCindex(Graph);
+        DCIndex *Index = new DCIndex(Graph);
         int index_construction_end_time = time(NULL);
         std::cout << "Index construction completed in " << timeFormatting(difftime(index_construction_end_time, index_construction_start_time)).str() << std::endl;
         delete Graph;
