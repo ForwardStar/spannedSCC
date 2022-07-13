@@ -149,7 +149,7 @@ DCIndex::DCIndex(TemporalGraph * Graph) {
     outOrder = new int[n];
     lowestOrder = new int[n];
     edges = new std::list<std::pair<int, int>>[tmax + 1]();
-    toBeMerged = new std::list<std::pair<int, int>>[tmax + 1]();
+    toBeMerged = new std::vector<std::pair<int, int>>[tmax + 1]();
     outLabel = new std::unordered_set<int>[n]();
     f = new int[n];
     sz = new int[n];
@@ -186,24 +186,27 @@ DCIndex::DCIndex(TemporalGraph * Graph) {
 
             // start BFS
             for (int j = ts; j <= tmax; j += i) {
+                int te = std::min(tmax, j + i - 1);
+
                 // absorb edges in neighbour nodes
-                for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
-                    std::list<std::pair<int, int>>::iterator it;
-                    for (it = edges[t].begin(); it != edges[t].end();) {
-                        int mountu = fastFind(it->first);
-                        int mountv = fastFind(it->second);
-                        if (outLabel[mountu].find(mountv) == outLabel[mountu].end()) {
-                            outLabel[mountu].insert(mountv);
-                            it++;
-                        }
-                        else {
-                            edges[t].erase(it++);
+                if (!hasTarjaned[te]) {
+                    for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
+                        std::list<std::pair<int, int>>::iterator it;
+                        for (it = edges[t].begin(); it != edges[t].end();) {
+                            int mountu = fastFind(it->first);
+                            int mountv = fastFind(it->second);
+                            if (outLabel[mountu].find(mountv) == outLabel[mountu].end()) {
+                                outLabel[mountu].insert(mountv);
+                                it++;
+                            }
+                            else {
+                                edges[t].erase(it++);
+                            }
                         }
                     }
                 }
 
                 // perform SCC tarjan
-                int te = std::min(tmax, j + i - 1);
                 if (!hasTarjaned[te]) {
                     for (int u = 0; u < n; u++) {
                         if (fastFind(u) != u) {
@@ -223,19 +226,14 @@ DCIndex::DCIndex(TemporalGraph * Graph) {
                     }
                 }
                 else {
-                    std::list<std::pair<int, int>>::iterator it;
-                    for (it = toBeMerged[te].begin(); it != toBeMerged[te].end();) {
-                        if (fastFind(it->first) == fastFind(it->second)) {
-                            toBeMerged[te].erase(it++);
-                            continue;
-                        }
+                    std::vector<std::pair<int, int>>::iterator it;
+                    for (it = toBeMerged[te].begin(); it != toBeMerged[te].end(); it++) {
                         fastUnion(it->first, it->second);
-                        it++;
                     }
                 }
 
                 if (i == 1) {
-                    std::list<std::pair<int, int>>::iterator it;
+                    std::vector<std::pair<int, int>>::iterator it;
                     for (it = toBeMerged[te].begin(); it != toBeMerged[te].end(); it++) {
                         unioN(ts, it->first, it->second, te);
                     }

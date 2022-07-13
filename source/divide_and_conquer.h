@@ -25,7 +25,7 @@ class DCIndex {
         bool *hasTarjaned;
 
         std::list<std::pair<int, int>> *edges;
-        std::list<std::pair<int, int>> *toBeMerged;
+        std::vector<std::pair<int, int>> *toBeMerged;
         std::unordered_set<int> *outLabel;
 
         std::stack<int> Stack;
