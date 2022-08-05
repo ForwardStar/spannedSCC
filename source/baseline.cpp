@@ -10,6 +10,14 @@ int BaselineIndex::find(int ts, int u) {
 
 }
 
+bool BaselineIndex::hashfind(int u,int v){
+    for(auto g: outLabel[u][v%10]){
+        if(g==v)return true;
+    }
+    return false;
+}
+
+
 void BaselineIndex::unioN(int ts, int u, int v, int t) {
 
     int mount_u = find(ts, u);
@@ -41,8 +49,9 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
 
     std::vector<int> to_delete;
 
-    std::unordered_set<int>::iterator it;
-    for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
+    std::vector<int>::iterator it;
+    for(int j=0;j<10;j++)
+    for (it = outLabel[now][j].begin(); it != outLabel[now][j].end(); it++) {
         int mount = find(ts, *it);
         if (mount != *it) {
             to_delete.push_back(*it);
@@ -58,10 +67,16 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
     std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
         int mount = find(ts, *it_delete);
-        if (outLabel[now].find(mount) == outLabel[now].end()) {
-            outLabel[now].insert(mount);
+        if (!hashfind(now,mount)) {
+            outLabel[now][mount%10].push_back(mount);
         }
-        outLabel[now].erase(*it_delete);
+        std::vector<int>::iterator iter;
+        for(iter = outLabel[now][(*it_delete)%10].begin(); iter!=outLabel[now][(*it_delete)%10].end();iter++){
+            if((*iter) == (*it_delete)){
+                outLabel[now][(*it_delete)%10].erase(iter);
+                break;
+            }
+        }
     }
 
     if (inOrder[now] == lowestOrder[now]) {
@@ -83,14 +98,14 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
             if (*it == mount) {
                 continue;
             }
-            std::unordered_set<int>::iterator it1;
-            for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
+            std::vector<int>::iterator it1;
+            for(int j=0;j<10;j++)
+            for (it1 = outLabel[*it][j].begin(); it1 != outLabel[*it][j].end(); it1++) {
                 int mount_edge = find(ts, *it1);
-                if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
-                    outLabel[mount].insert(mount_edge);
+                if (!hashfind(mount,mount_edge)) {
+                    outLabel[mount][mount_edge%10].push_back(mount_edge);
                 }
             }
-            outLabel[*it].clear();
         }
     }
 
@@ -168,8 +183,10 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     inOrder = new int[n];
     outOrder = new int[n];
     lowestOrder = new int[n];
-    outLabel = new std::unordered_set<int>[n]();
-
+    outLabel = new std::vector<int> *[n]();
+    for(int u=0;u<n;u++){
+        outLabel[u] = new std::vector<int>[10]();
+    }
     for (int ts = 0; ts <= tmax; ++ts) {
         L[ts] = new int[n];
         T[ts] = new int[n];
@@ -181,7 +198,8 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     
     for (int ts = 0; ts <= tmax; ++ts) {
         for (int u = 0; u < n; ++u) {
-            outLabel[u].clear();
+            for(int j=0;j<10;j++)
+                outLabel[u][j].clear();
             outOfStack[u] = 0;
             Vis[u] = 0;
             size[u] = 1;
@@ -189,8 +207,8 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
 
         std::vector<std::pair<int, int>>::iterator it;
         for (it = Graph->temporal_edge[ts].begin(); it != Graph->temporal_edge[ts].end(); it++) {
-            if (outLabel[it->first].find(it->second) == outLabel[it->first].end()) {
-                outLabel[it->first].insert(it->second);
+            if (!hashfind(it->first,it->second)) {
+                outLabel[it->first][it->second%10].push_back(it->second);
             }
         }
 
@@ -222,8 +240,8 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
                 }
 
                 // shift edges to the mounted vertices of SCCs
-                if (outLabel[mountu].find(mountv) == outLabel[mountu].end()) {
-                    outLabel[mountu].insert(mountv);
+                if (!hashfind(mountu,mountv)) {
+                    outLabel[mountu][mountv%10].push_back(mountv);
                 }
             }
             for (int u = 0; u < n; ++u) {
