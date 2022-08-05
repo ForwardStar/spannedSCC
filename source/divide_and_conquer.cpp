@@ -60,6 +60,13 @@ void DCIndex::unioN(int ts, int u, int v, int t) {
 
 }
 
+bool DCIndex::hashfind(int u,int v){
+    for(auto g: outLabel[u][v%10]){
+        if(g==v)return true;
+    }
+    return false;
+}
+
 void DCIndex::tarjan(int now, int &t, int &te) {
 
     inOrder[now] = ++t;
@@ -68,8 +75,9 @@ void DCIndex::tarjan(int now, int &t, int &te) {
     Stack.push(now);
 
     std::vector<int> to_delete;
-    std::unordered_set<int>::iterator it;
-    for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
+    std::vector<int>::iterator it;
+    for(int j=0;j<10;j++)
+    for (it = outLabel[now][j].begin(); it != outLabel[now][j].end(); it++) {
         int mount = fastFind(*it);
         if (mount != *it) {
             to_delete.push_back(*it);
@@ -85,10 +93,16 @@ void DCIndex::tarjan(int now, int &t, int &te) {
     std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
         int mount = fastFind(*it_delete);
-        if (outLabel[now].find(mount) == outLabel[now].end()) {
-            outLabel[now].insert(mount);
+        if (!hashfind(now,mount)) {
+            outLabel[now][mount%10].push_back(mount);
         }
-        outLabel[now].erase(*it_delete);
+        std::vector<int>::iterator iter;
+        for(iter = outLabel[now][(*it_delete)%10].begin(); iter!=outLabel[now][(*it_delete)%10].end();iter++){
+            if((*iter) == (*it_delete)){
+                outLabel[now][(*it_delete)%10].erase(iter);
+                break;
+            }
+        }
     }
 
     if (inOrder[now] == lowestOrder[now]) {
@@ -110,7 +124,8 @@ void DCIndex::tarjan(int now, int &t, int &te) {
         }
         int mount = fastFind(*CurrentSCC.begin());
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
-            outLabel[*it].clear();
+            for(int j=0;j<10;j++)
+            outLabel[*it][j].clear();
         }
         CurrentSCC.clear();
         std::vector<int> (CurrentSCC).swap(CurrentSCC);
@@ -119,6 +134,8 @@ void DCIndex::tarjan(int now, int &t, int &te) {
     outOrder[now] = ++t;
 
 }
+
+
 
 DCIndex::~DCIndex() {
 
@@ -150,7 +167,10 @@ DCIndex::DCIndex(TemporalGraph * Graph) {
     lowestOrder = new int[n];
     edges = new std::list<std::pair<int, int>>[tmax + 1]();
     toBeMerged = new std::vector<std::pair<int, int>>[tmax + 1]();
-    outLabel = new std::unordered_set<int>[n]();
+    outLabel = new std::vector<int> *[n]();
+    for(int u=0;u<n;u++){
+        outLabel[u] = new std::vector<int>[10]();
+    }
     f = new int[n];
     sz = new int[n];
     for (int ts = 0; ts <= tmax; ++ts) {
@@ -181,7 +201,8 @@ DCIndex::DCIndex(TemporalGraph * Graph) {
             for (int u = 0; u < n; ++u) {
                 f[u] = u;
                 sz[u] = 1;
-                outLabel[u].clear();
+                for(int j=0;j<10;j++)
+                outLabel[u][j].clear();
             }
 
             // start BFS
@@ -195,8 +216,8 @@ DCIndex::DCIndex(TemporalGraph * Graph) {
                         for (it = edges[t].begin(); it != edges[t].end();) {
                             int mountu = fastFind(it->first);
                             int mountv = fastFind(it->second);
-                            if (outLabel[mountu].find(mountv) == outLabel[mountu].end()) {
-                                outLabel[mountu].insert(mountv);
+                            if (!hashfind(mountu,mountv)) {
+                                outLabel[mountu][mountv%10].push_back(mountv);
                                 it++;
                             }
                             else {

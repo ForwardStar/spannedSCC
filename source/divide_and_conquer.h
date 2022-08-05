@@ -10,7 +10,7 @@ class DCIndex {
         void fastUnion(int u, int v);
     
         int find(int ts,int u);
-    
+        bool hashfind(int u,int v);
         void unioN(int ts, int u, int v, int t);
         
         void tarjan(int now, int &t, int &te);
@@ -26,7 +26,7 @@ class DCIndex {
 
         std::list<std::pair<int, int>> *edges;
         std::vector<std::pair<int, int>> *toBeMerged;
-        std::unordered_set<int> *outLabel;
+        std::vector<int> **outLabel;
 
         std::stack<int> Stack;
 
