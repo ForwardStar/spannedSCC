@@ -49,7 +49,7 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
 
     std::vector<int> to_delete;
 
-    std::vector<int>::iterator it;
+    std::list<int>::iterator it;
     for(int j=0;j<10;j++)
     for (it = outLabel[now][j].begin(); it != outLabel[now][j].end(); it++) {
         int mount = find(ts, *it);
@@ -71,12 +71,7 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
             outLabel[now][mount%10].push_back(mount);
         }
         std::vector<int>::iterator iter;
-        for(iter = outLabel[now][(*it_delete)%10].begin(); iter!=outLabel[now][(*it_delete)%10].end();iter++){
-            if((*iter) == (*it_delete)){
-                outLabel[now][(*it_delete)%10].erase(iter);
-                break;
-            }
-        }
+        outLabel[now][(*it_delete)%10].remove((*it_delete));
     }
 
     if (inOrder[now] == lowestOrder[now]) {
@@ -98,7 +93,7 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
             if (*it == mount) {
                 continue;
             }
-            std::vector<int>::iterator it1;
+            std::list<int>::iterator it1;
             for(int j=0;j<10;j++)
             for (it1 = outLabel[*it][j].begin(); it1 != outLabel[*it][j].end(); it1++) {
                 int mount_edge = find(ts, *it1);
@@ -183,9 +178,9 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     inOrder = new int[n];
     outOrder = new int[n];
     lowestOrder = new int[n];
-    outLabel = new std::vector<int> *[n]();
+    outLabel = new std::list<int> *[n]();
     for(int u=0;u<n;u++){
-        outLabel[u] = new std::vector<int>[10]();
+        outLabel[u] = new std::list<int>[10]();
     }
     for (int ts = 0; ts <= tmax; ++ts) {
         L[ts] = new int[n];

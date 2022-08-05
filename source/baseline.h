@@ -19,7 +19,7 @@ class BaselineIndex {
         bool *outOfStack;
         bool *Vis;
 
-        std::vector<int> **outLabel;
+        std::list<int> **outLabel;
 
         std::stack<int> Stack;
 
