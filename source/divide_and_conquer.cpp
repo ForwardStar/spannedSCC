@@ -3,13 +3,7 @@
 
 int DCIndex::fastFind(int u) {
 
-    if (f[u] == u) {
-        return u;
-    }
-    int mountu = fastFind(f[u]);
-    f[u] = mountu;
-    sz[mountu] = sz[u] + 1;
-    return mountu;
+    return f[u]==u?f[u]:f[u]=fastFind(f[u]);
 
 }
 
@@ -23,7 +17,7 @@ void DCIndex::fastUnion(int u, int v) {
             std::swap(mountu, mountv);
         }
         f[mountu] = mountv;
-        sz[mountv] = sz[mountu] + 1;
+        sz[mountv]==sz[mountu]? sz[mountv]++ : 1;
     }
 
 }
@@ -50,10 +44,9 @@ void DCIndex::unioN(int ts, int u, int v, int t) {
 
     // Merge the smaller connected component into the larger one.
     if (size[mount_u] < size[mount_v]) {
-        std::swap(u, v);
         std::swap(mount_u, mount_v);
     }
-    size[mount_u] += size[mount_v];
+    size[mount_u]==size[mount_v] ? size[mount_u]++ : 1;
     
     L[ts][mount_v] = mount_u;
     T[ts][mount_v] = t;
@@ -74,14 +67,14 @@ void DCIndex::tarjan(int now, int &t, int &te) {
     Vis[now] = true;
     Stack.push(now);
 
-    std::vector<int> to_delete;
+    //std::vector<int> to_delete;
     std::vector<int>::iterator it;
     for(int j=0;j<10;j++)
     for (it = outLabel[now][j].begin(); it != outLabel[now][j].end(); it++) {
         int mount = fastFind(*it);
-        if (mount != *it) {
+        /*if (mount != *it) {
             to_delete.push_back(*it);
-        }
+        }*/
         if (!Vis[mount]) {
             tarjan(mount, t, te);
         }
@@ -90,7 +83,7 @@ void DCIndex::tarjan(int now, int &t, int &te) {
         }
     }
 
-    std::vector<int>::iterator it_delete;
+    /*std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
         int mount = fastFind(*it_delete);
         if (!hashfind(now,mount)) {
@@ -103,7 +96,7 @@ void DCIndex::tarjan(int now, int &t, int &te) {
                 break;
             }
         }
-    }
+    }*/
 
     if (inOrder[now] == lowestOrder[now]) {
         std::vector<int> CurrentSCC;
@@ -123,12 +116,13 @@ void DCIndex::tarjan(int now, int &t, int &te) {
             fastUnion(*it, *CurrentSCC.begin());
         }
         int mount = fastFind(*CurrentSCC.begin());
-        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
-            for(int j=0;j<10;j++)
-            outLabel[*it][j].clear();
-        }
+        //for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
+            for(int j=0;j<10;j++){
+                outLabel[mount][j].clear();
+            }
+        //}
         CurrentSCC.clear();
-        std::vector<int> (CurrentSCC).swap(CurrentSCC);
+        //std::vector<int> (CurrentSCC).swap(CurrentSCC);
     }
 
     outOrder[now] = ++t;
@@ -242,6 +236,7 @@ DCIndex::DCIndex(TemporalGraph * Graph) {
                     int t = 0;
                     for (int u = 0; u < n; u++) {
                         if (!Vis[u]) {
+                            t=0;
                             tarjan(u, t, te);
                         }
                     }
