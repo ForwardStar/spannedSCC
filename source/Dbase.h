@@ -13,13 +13,14 @@ class DifferentBaseIndex {
 
         void kosaraju1(int now, int &t);
         void kosaraju3(int now, int &t);
-        void kosaraju2(int now, int &t, int ori, int ts);
-        int top;
+        void kosaraju2(int now, int &t, int ts);
+        void kosaraju4(int now, int ts);
+        int top,col;
         int *inOrder;
         int *outOrder;
         int *lowestOrder;
         int *Sta;
-        bool *Vis;
+        int *Vis,*Vis2;
 
         std::unordered_set<long long> *outLabel, *outLabel2;
         std::unordered_set<long long>  **S;
