@@ -89,8 +89,8 @@ std::stringstream DifferentBaseIndex::solve(int n, int ts, int te) {
     int cnt=0;
     for(int i=0;i<=ts;i++){
         for(int j=ts;j<=tmax;j++){
-            if(S[i][j].empty())continue;
-            for(auto g:S[i][j]){
+            if(G[i][j].empty())continue;
+            for(auto g:G[i][j]){
                 long long tim=g&(1023);
                 if(tim>te)continue;
                 long long u=(g>>35),v=(g>>10)&(33554431ll);
@@ -146,6 +146,7 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
     Sta = new int[n];
     Vis = new int[n];
     S = new std::unordered_set<long long> *[tmax+1]();
+    G = new std::vector<long long> *[tmax+1]();
     outLabel = new std::unordered_set<long long>[n]();
     outLabel2 = new std::unordered_set<long long>[n]();
     Vis2 = new int[n];
@@ -153,6 +154,7 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
     top=0;
     for (int ts = 0; ts <= tmax; ++ts) {
         S[ts] = new std::unordered_set<long long> [tmax+1]();
+        G[ts] = new std::vector<long long> [tmax+1]();
         for(int te=0;te<=tmax;te++)S[ts][te].max_load_factor(10);
     }
     for (int ts = 0; ts <= tmax; ++ts) {
@@ -248,10 +250,21 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
             }
         }
         for(int lt=0;lt<ts;lt++){
-            S[lt][ts-1].rehash(10);
+            for(auto g:S[lt][ts-1]){
+                G[lt][ts-1].push_back(g);
+            }
+            S[lt][ts-1].clear();
+            S[lt][ts-1].rehash(1);
         }
         S[ts][ts].rehash(10);
         putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
+    }
+    for(int lt=0;lt<=tmax;lt++){
+        for(auto g:S[lt][tmax]){
+            G[lt][tmax].push_back(g);
+        }
+        S[lt][tmax].clear();
+        S[lt][tmax].rehash(1);
     }
     /*int cnt=0;
     for(int ts=0;ts<=tmax;ts++){

@@ -25,6 +25,7 @@ class DifferentBaseIndex {
 
         std::unordered_set<long long> *outLabel, *outLabel2;
         std::unordered_set<long long>  **S;
+        std::vector<long long> **G;
         std::stack<int> Stack;
         std::vector<int> CC;
 
