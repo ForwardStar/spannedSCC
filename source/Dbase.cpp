@@ -166,14 +166,10 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
             std::vector<std::pair<int, int>>::iterator it;
             for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
                 int u=find(it->first),v=find(it->second);
-                if(u==v){
-                    //std::cerr<<it->first<<' '<<it->second<<' '<<t<<'\n';
-                    continue;
-                }
+                if(u==v)continue;
                 long long g=(((long long)it->first)<<35)+(((long long)it->second)<<10)+t;
                 outLabel[u].insert(g);
                 outLabel2[v].insert(g);
-                //std::cerr<<"g:"<<g<<'\n';
             }
             for(int u=0;u<n;u++){
                 Vis2[u]=0;
@@ -241,10 +237,10 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
             int flag=0;
             for(int lt=0;lt<ts;lt++){
                 if(S[lt][ts-1].find(g)!=S[lt][ts-1].end()){
-                S[lt][ts].insert(g);
-                S[lt][ts-1].erase(g);
-                flag=1;
-                break;
+                    S[lt][ts].insert(g);
+                    S[lt][ts-1].erase(g);
+                    flag=1;
+                    break;
                 }
             }
             if(flag){
@@ -258,6 +254,7 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
         for(int te=ts;te<=tmax;te++)cnt+=S[ts][te].size();
     }
     std::cerr<<cnt;
+    delete [] f;
 }
 
 DifferentBaseIndex::~DifferentBaseIndex() {
