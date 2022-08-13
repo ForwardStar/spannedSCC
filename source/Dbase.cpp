@@ -238,16 +238,26 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
         }
         for(auto g:S[ts][ts]){
             //std::cerr<<((g>>10)&(33554431ll))<<' '<<(g>>35)<<' '<<(g&1023)<<'\n';
+            int flag=0;
             for(int lt=0;lt<ts;lt++){
                 if(S[lt][ts-1].find(g)!=S[lt][ts-1].end()){
                 S[lt][ts].insert(g);
                 S[lt][ts-1].erase(g);
+                flag=1;
                 break;
                 }
+            }
+            if(flag){
+                S[ts][ts].erase(g);
             }
         }
         putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
     }
+    int cnt=0;
+    for(int ts=0;ts<=tmax;ts++){
+        for(int te=ts;te<=tmax;te++)cnt+=S[ts][te].size();
+    }
+    std::cerr<<cnt;
 }
 
 DifferentBaseIndex::~DifferentBaseIndex() {
