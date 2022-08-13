@@ -9,18 +9,19 @@ class DifferentBaseIndex {
         int find(int u);
     
         // unioN(ts, u, v, t): perform the union operation on u and v at time t with start time ts.
-        void unioN(int ts, int u, int v, int t);
 
-        void kosaraju1(int now, int &t);
-        void kosaraju3(int now, int &t);
-        void kosaraju2(int now, int &t, int ts);
-        void kosaraju4(int now, int ts);
+        void kosaraju1(int now);
+        void kosaraju3(int now);
+        void kosaraju5(int now);
+        void kosaraju2(int now, int ts);
+        void kosaraju4(int now, int ori,int ts);
         int top,col;
         int *inOrder;
         int *outOrder;
         int *lowestOrder;
         int *Sta;
         int *Vis,*Vis2;
+        int *f;
 
         std::unordered_set<long long> *outLabel, *outLabel2;
         std::unordered_set<long long>  **S;

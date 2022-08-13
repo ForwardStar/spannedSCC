@@ -2,82 +2,74 @@
 
 int DifferentBaseIndex::find(int u) {
     
-    if (L[u] != u) {
-        return find(L[u]);
+    if (f[u] != u) {
+        return find(f[u]);
     }
 
     return u;
 
 }
 
-void DifferentBaseIndex::unioN(int ts, int u, int v, int t) {
 
-    int mount_u = find(u);
-    int mount_v = find(v);
-
-    // Already in the same connected component.
-    if (mount_u == mount_v) {
-        return;
-    }
-
-    // Merge the smaller connected component into the larger one.
-    if (size[mount_u] < size[mount_v]) {
-        std::swap(u, v);
-        std::swap(mount_u, mount_v);
-    }
-    size[mount_u] += size[mount_v];
-    
-    L[mount_v] = mount_u;
-    T[mount_v] = t;
-
-}
-
-void DifferentBaseIndex::kosaraju1(int now, int &t) {
+void DifferentBaseIndex::kosaraju1(int now) {
     //std::cerr<<now<<' '<<t<<'\n';
-    inOrder[now] = ++t;
     Vis[now] = 1;
     for(auto g:outLabel[now]){
-        int v=(g>>10)&(33554431ll);
+        int v=find((g>>10)&(33554431ll));
         //std::cerr<<now<<' '<<v<<'\n';
         if(Vis[v]==1)continue;
-        kosaraju1(v,t);
+        kosaraju1(v);
         
     }
     Sta[++top]= now;
 }
 
 
-void DifferentBaseIndex::kosaraju3(int now, int &t) {
+void DifferentBaseIndex::kosaraju5(int now) {
+    //std::cerr<<now<<' '<<t<<'\n';
+    Vis[now] = 1;
+    for(auto g:outLabel[now]){
+        int v=(g>>10)&(33554431ll);
+        //std::cerr<<now<<'!'<<v<<'\n';
+        if(Vis[v]==1)continue;
+        kosaraju5(v);
+        
+    }
+    Sta[++top]= now;
+}
+
+void DifferentBaseIndex::kosaraju3(int now) {
     CC.push_back(now);
-    inOrder[now] = ++t;
     Vis[now] = 1;
     for(auto g:outLabel2[now]){
         long long v=g>>35;
         //std::cerr<<now<<' '<<v<<'\n';
         if(Vis[v]==1)continue;
-        kosaraju3(v,t);
+        kosaraju3(v);
     }
 }
-
-void DifferentBaseIndex::kosaraju2(int now,int &t,int ts){
+void DifferentBaseIndex::kosaraju2(int now,int ts){
     Vis[now]=col;
     for(auto g:outLabel2[now]){
-        int v=(g>>35);
-        int tim=g&((1<<10)-1);
+        int v=find(g>>35);
         if(Vis[v]==0){
+            //std::cerr<<now<<' '<<v<<' '<<col<<'!'<<'\n';
             S[ts][ts].insert(g);
-            kosaraju2(v,t,ts);
+            kosaraju2(v,ts);
         }
     }
 }
-void DifferentBaseIndex::kosaraju4(int now,int ts){
+void DifferentBaseIndex::kosaraju4(int now, int ori, int ts){
     Vis2[now]=1;
+    f[now]=ori;
     for(auto g:outLabel[now]){
-        int v=(g>>10)&(33554431ll);
-        if(Vis2[v])continue;
+        int v=find((g>>10)&(33554431ll));
+        if(Vis2[v]){
+            continue;
+        }
         if(Vis[v]==Vis[now]){
             S[ts][ts].insert(g);
-            kosaraju4(v,ts);
+            kosaraju4(v,ori,ts);
         }
     }
 }
@@ -102,7 +94,6 @@ std::stringstream DifferentBaseIndex::solve(int n, int ts, int te) {
                 long long tim=g&(1023);
                 if(tim>te)continue;
                 long long u=(g>>35),v=(g>>10)&(33554431ll);
-                //std::cerr<<u<<' '<<v<<'\n';
                 outLabel[u].insert(g);
                 outLabel2[v].insert(g);
             }
@@ -112,7 +103,7 @@ std::stringstream DifferentBaseIndex::solve(int n, int ts, int te) {
     for(int u=0;u<n;u++){
         if(!Vis[u]){
             int t=0;
-            kosaraju1(u,t);
+            kosaraju5(u);
         }
     }
     for(int u=0;u<n;u++)Vis[u]=0;
@@ -122,7 +113,7 @@ std::stringstream DifferentBaseIndex::solve(int n, int ts, int te) {
         int u=Sta[top];top--;
         if(Vis[u])continue;
         CC.clear();
-        kosaraju3(u,t);
+        kosaraju3(u);
         std::sort(CC.begin(),CC.end());
         for(auto v:CC){
             CurrentCC[CC[0]].push_back(v);
@@ -132,7 +123,6 @@ std::stringstream DifferentBaseIndex::solve(int n, int ts, int te) {
         if (CurrentCC[u].size() == 0) {
             continue;
         }
-        //std::cerr<<u<<'\n';
         std::vector<int>::iterator it;
         Ans << "{ ";
         for (it = CurrentCC[u].begin(); it != CurrentCC[u].end(); it++) {
@@ -154,18 +144,13 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
     n = Graph->numOfVertices();
     m = Graph->numOfEdges();
     tmax = Graph->tmax;
-    L = new int [tmax + 1];
-    T = new int [tmax + 1];
-    size = new int[n];
     Sta = new int[n];
     Vis = new int[n];
-    inOrder = new int[n];
-    outOrder = new int[n];
-    lowestOrder = new int[n];
     S = new std::unordered_set<long long> *[tmax+1]();
     outLabel = new std::unordered_set<long long>[n]();
     outLabel2 = new std::unordered_set<long long>[n]();
     Vis2 = new int[n];
+    f = new int[n];
     top=0;
     for (int ts = 0; ts <= tmax; ++ts) {
         S[ts] = new std::unordered_set<long long> [tmax+1]();
@@ -174,52 +159,95 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
         for(int u=0;u<n;u++){
             outLabel[u].clear();
             outLabel2[u].clear();
+            f[u]=u;
         }
         for(int t=ts;t<=tmax;t++){
+            col=0;
+            std::vector<std::pair<int, int>>::iterator it;
+            for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
+                int u=find(it->first),v=find(it->second);
+                if(u==v){
+                    //std::cerr<<it->first<<' '<<it->second<<' '<<t<<'\n';
+                    continue;
+                }
+                long long g=(((long long)it->first)<<35)+(((long long)it->second)<<10)+t;
+                outLabel[u].insert(g);
+                outLabel2[v].insert(g);
+                //std::cerr<<"g:"<<g<<'\n';
+            }
+            for(int u=0;u<n;u++){
+                Vis2[u]=0;
+                Vis[u]=0;
+            }
+            for(int u=0;u<n;u++){
+                int g=find(u);
+                if(!Vis[g]){
+                    int t=0,top=0;
+                    kosaraju1(g);
+                }
+            }
             for(int u=0;u<n;u++){
                 Vis[u]=0;
             }
-            std::vector<std::pair<int, int>>::iterator it;
-            for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
-                long long g=(((long long)it->first)<<35)+(((long long)it->second)<<10)+t;
-                outLabel[it->first].insert(g);
-                outLabel2[it->second].insert(g);
+            while(top){
+                int u=Sta[top];top--;
+                //std::cerr<<f[u]<<'\n';
+                int g=find(u);
+                if(Vis2[g])continue;
+                col++;
+                int t=0;
+                kosaraju2(g,ts);
+                kosaraju4(g,g,ts);
+                
             }
+            //std::cerr<<ts<<' '<<t<<'\n';
+            //for(int i=0;i<n;i++)std::cerr<<i<<' '<<f[i]<<' '<<Vis[i]<<'\n';
             for(int u=0;u<n;u++){
-            if(!Vis[u]){
-                int t=0,top=0;
-                kosaraju1(u,t);
+                int p=find(u);
+                if(p==u){
+                    for(auto g:outLabel2[u]){
+                        long long v=g>>35;
+                        if(find(u)==find(v)){
+                            outLabel2[u].erase(g);
+                        }
+                    }
+                    for(auto g:outLabel[u]){
+                        long long v=(g>>10)&(33554431ll);
+                        if(find(u)==find(v)){
+                            outLabel[u].erase(g);
+                        }
+                    }
+                }
+                else{
+                    for(auto g:outLabel2[u]){
+                        long long v=g>>35;
+                        if(find(u)!=find(v)){
+                            outLabel2[p].insert(g);
+                        }
+                    }
+                    for(auto g:outLabel[u]){
+                        long long v=(g>>10)&(33554431ll);
+                        if(find(u)!=find(v)){
+                            outLabel[p].insert(g);
+                        }
+                    }
+                    outLabel2[u].clear();
+                    outLabel[u].clear();
+                }
             }
         }
-        for(int u=0;u<n;u++){
-            Vis2[u]=0;
-            Vis[u]=0;
-        }
-        while(top){
-            int u=Sta[top];top--;
-            if(Vis2[u])continue;
-            col++;
-            int t=0;
-            kosaraju2(u,t,ts);
-            kosaraju4(u,ts);
-        }
-        for(auto g:S[ts][ts])
-        for(int lt=0;lt<ts;lt++){
-            if(S[lt][ts-1].find(g)!=S[lt][ts-1].end()){
+        for(auto g:S[ts][ts]){
+            //std::cerr<<((g>>10)&(33554431ll))<<' '<<(g>>35)<<' '<<(g&1023)<<'\n';
+            for(int lt=0;lt<ts;lt++){
+                if(S[lt][ts-1].find(g)!=S[lt][ts-1].end()){
                 S[lt][ts].insert(g);
                 S[lt][ts-1].erase(g);
                 break;
+                }
             }
         }
-        }
-        
-        
         putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
     }
-    delete [] size;
-    delete [] outOrder;
-    delete [] lowestOrder;
-
 }
 
 DifferentBaseIndex::~DifferentBaseIndex() {
