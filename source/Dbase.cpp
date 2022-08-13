@@ -248,9 +248,10 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
                 S[ts][ts].erase(g);
             }
         }
-        for(int lt=0;lt<=ts;lt++){
-            std::unordered_set<long long>().swap(S[lt][ts]);
+        for(int lt=0;lt<ts;lt++){
+            S[lt][ts-1].rehash(10);
         }
+        S[ts][ts].rehash(10);
         putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
     }
     int cnt=0;
