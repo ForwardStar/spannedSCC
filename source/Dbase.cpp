@@ -95,12 +95,10 @@ std::stringstream DifferentBaseIndex::solve(int n, int ts, int te) {
                 if(tim>te)continue;
                 long long u=(g>>35),v=(g>>10)&(33554431ll);
                 outLabel[u].insert(g);
-                outLabel2[v].insert(g);
-                cnt++;
+                outLabel2[v].insert(g); 
             }
         }
     }
-    std::cerr<<cnt<<'\n';
     for(int u=0;u<n;u++){
         if(!Vis[u]){
             int t=0;
@@ -155,6 +153,7 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
     top=0;
     for (int ts = 0; ts <= tmax; ++ts) {
         S[ts] = new std::unordered_set<long long> [tmax+1]();
+        for(int te=0;te<=tmax;te++)S[ts][te].max_load_factor(10);
     }
     for (int ts = 0; ts <= tmax; ++ts) {
         for(int u=0;u<n;u++){
@@ -254,16 +253,16 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
         S[ts][ts].rehash(10);
         putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
     }
-    int cnt=0;
+    /*int cnt=0;
     for(int ts=0;ts<=tmax;ts++){
         for(int te=ts;te<=tmax;te++){
             cnt+=S[ts][te].size();
-            /*for(auto g:S[ts][te]){
+            for(auto g:S[ts][te]){
                 std::cerr<<((g>>10)&(33554431ll))<<' '<<(g>>35)<<' '<<(g&1023)<<' '<<ts<<' '<<te<<'\n';
-            }*/
+            }
         }
     }
-    std::cerr<<cnt<<'\n';
+    std::cerr<<cnt<<'\n';*/
     delete [] f;
 }
 
