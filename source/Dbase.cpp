@@ -269,10 +269,7 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
     /*int cnt=0;
     for(int ts=0;ts<=tmax;ts++){
         for(int te=ts;te<=tmax;te++){
-            cnt+=S[ts][te].size();
-            for(auto g:S[ts][te]){
-                std::cerr<<((g>>10)&(33554431ll))<<' '<<(g>>35)<<' '<<(g&1023)<<' '<<ts<<' '<<te<<'\n';
-            }
+            cnt+=G[ts][te].size();
         }
     }
     std::cerr<<cnt<<'\n';*/
