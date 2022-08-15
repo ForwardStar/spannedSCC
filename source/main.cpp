@@ -3,7 +3,7 @@
 #include "online_search.h"
 #include "baseline.h"
 #include "divide_and_conquer.h"
-#include "Dbase.h"
+#include "optimized.h"
 
 TemporalGraph * build(char * argv[]) {
 
@@ -73,20 +73,20 @@ int main(int argc, char * argv[]) {
         std::cout << "DC completed!" << std::endl;
     }
 
-    if (std::strcmp(argv[4], "Dbase") == 0) {
-        std::cout << "Running Dbase..." << std::endl;
+    if (std::strcmp(argv[4], "Optimized") == 0) {
+        std::cout << "Running optimized..." << std::endl;
         std::cout << "Constructing the index structure..." << std::endl;
         int index_construction_start_time = time(NULL);
-        DifferentBaseIndex *Index = new DifferentBaseIndex(Graph);
+        OptimizedIndex *Index = new OptimizedIndex(Graph);
         int index_construction_end_time = time(NULL);
         std::cout << "Index construction completed in " << timeFormatting(difftime(index_construction_end_time, index_construction_start_time)).str() << std::endl;
         delete Graph;
         std::cout << "Solving queries..." << std::endl;
         int query_start_time = time(NULL);
-        Dbase(Index, vertex_num, argv[2], argv[3]);
+        optimized(Index, vertex_num, argv[2], argv[3]);
         int query_end_time = time(NULL);
         std::cout << "Query completed in " << timeFormatting(difftime(query_end_time, query_start_time)).str() << std::endl;
-        std::cout << "Dbase completed!" << std::endl;
+        std::cout << "Optimized completed!" << std::endl;
     }
     int end_time = time(NULL);
     std::cout << "Program finished in " << timeFormatting(difftime(end_time, start_time)).str() << std::endl;

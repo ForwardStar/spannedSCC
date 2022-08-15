@@ -1,6 +1,6 @@
-#include "Dbase.h"
+#include "optimized.h"
 
-int DifferentBaseIndex::find(int u) {
+int OptimizedIndex::find(int u) {
     
     if (f[u] != u) {
         return find(f[u]);
@@ -11,7 +11,7 @@ int DifferentBaseIndex::find(int u) {
 }
 
 
-void DifferentBaseIndex::kosaraju1(int now) {
+void OptimizedIndex::kosaraju1(int now) {
     //std::cerr<<now<<' '<<t<<'\n';
     Vis[now] = 1;
     for(auto g:outLabel[now]){
@@ -25,7 +25,7 @@ void DifferentBaseIndex::kosaraju1(int now) {
 }
 
 
-void DifferentBaseIndex::kosaraju5(int now) {
+void OptimizedIndex::kosaraju5(int now) {
     //std::cerr<<now<<' '<<t<<'\n';
     Vis[now] = 1;
     for(auto g:outLabel[now]){
@@ -38,7 +38,7 @@ void DifferentBaseIndex::kosaraju5(int now) {
     Sta[++top]= now;
 }
 
-void DifferentBaseIndex::kosaraju3(int now) {
+void OptimizedIndex::kosaraju3(int now) {
     CC.push_back(now);
     Vis[now] = 1;
     for(auto g:outLabel2[now]){
@@ -48,7 +48,7 @@ void DifferentBaseIndex::kosaraju3(int now) {
         kosaraju3(v);
     }
 }
-void DifferentBaseIndex::kosaraju2(int now,int ts){
+void OptimizedIndex::kosaraju2(int now,int ts){
     Vis[now]=col;
     for(auto g:outLabel2[now]){
         int v=find(g>>35);
@@ -59,7 +59,7 @@ void DifferentBaseIndex::kosaraju2(int now,int ts){
         }
     }
 }
-void DifferentBaseIndex::kosaraju4(int now, int ori, int ts){
+void OptimizedIndex::kosaraju4(int now, int ori, int ts){
     Vis2[now]=1;
     f[now]=ori;
     for(auto g:outLabel[now]){
@@ -73,7 +73,7 @@ void DifferentBaseIndex::kosaraju4(int now, int ori, int ts){
         }
     }
 }
-std::stringstream DifferentBaseIndex::solve(int n, int ts, int te) {
+std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
     
     std::stringstream Ans;
     std::vector<int> *CurrentCC = new std::vector<int>[n]();
@@ -135,7 +135,7 @@ std::stringstream DifferentBaseIndex::solve(int n, int ts, int te) {
 
 }
 
-DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
+OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
     
     int start_time = time(NULL);
     start_time = time(NULL);
@@ -164,6 +164,7 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
             f[u]=u;
         }
         for(int t=ts;t<=tmax;t++){
+            
             col=0;
             std::vector<std::pair<int, int>>::iterator it;
             for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
@@ -200,33 +201,38 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
             }
             //std::cerr<<ts<<' '<<t<<'\n';
             //for(int i=0;i<n;i++)std::cerr<<i<<' '<<f[i]<<' '<<Vis[i]<<'\n';
-            for(int u=0;u<n;u++){
-                int p=find(u);
-                if(p==u){
-                    for(auto g:outLabel2[u]){
-                        long long v=g>>35;
-                        if(find(u)==find(v)){
-                            outLabel2[u].erase(g);
+            for (int u = 0; u < n; u++) {
+                std::unordered_set<long long>::iterator it;
+                int p = find(u);
+                if (p == u) {
+                    for (it = outLabel2[u].begin(); it != outLabel2[u].end();) {
+                        long long v = *it >> 35;
+                        if (find(u) == find(v)){
+                            outLabel2[u].erase(it++);
+                            continue;
                         }
+                        ++it;
                     }
-                    for(auto g:outLabel[u]){
-                        long long v=(g>>10)&(33554431ll);
-                        if(find(u)==find(v)){
-                            outLabel[u].erase(g);
+                    for (it = outLabel[u].begin(); it != outLabel[u].end();) {
+                        long long v = (*it >> 10) & (33554431ll);
+                        if (find(u) == find(v)) {
+                            outLabel[u].erase(it++);
+                            continue;
                         }
+                        ++it;
                     }
                 }
-                else{
-                    for(auto g:outLabel2[u]){
-                        long long v=g>>35;
-                        if(find(u)!=find(v)){
-                            outLabel2[p].insert(g);
+                else {
+                    for (it = outLabel2[u].begin(); it != outLabel2[u].end(); it++) {
+                        long long v = *it >> 35;
+                        if (find(u) != find(v)) {
+                            outLabel2[p].insert(*it);
                         }
                     }
-                    for(auto g:outLabel[u]){
-                        long long v=(g>>10)&(33554431ll);
-                        if(find(u)!=find(v)){
-                            outLabel[p].insert(g);
+                    for (it = outLabel[u].begin(); it != outLabel[u].end(); it++){
+                        long long v = (*it >> 10) & (33554431ll);
+                        if (find(u) != find(v)) {
+                            outLabel[p].insert(*it);
                         }
                     }
                     outLabel2[u].clear();
@@ -276,14 +282,14 @@ DifferentBaseIndex::DifferentBaseIndex(TemporalGraph * Graph) {
     delete [] f;
 }
 
-DifferentBaseIndex::~DifferentBaseIndex() {
+OptimizedIndex::~OptimizedIndex() {
 
     delete [] L;
     delete [] T;
 
 }
 
-void Dbase(DifferentBaseIndex * Index, int vertex_num, char * query_file, char * output_file) {
+void optimized(OptimizedIndex * Index, int vertex_num, char * query_file, char * output_file) {
 
     int ts, te;
     int query_num = 0;

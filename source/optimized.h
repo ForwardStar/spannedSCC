@@ -1,7 +1,7 @@
 #include "commonfunctions.h"
 #include "temporal_graph.h"
 
-class DifferentBaseIndex {
+class OptimizedIndex {
 
     private:
 
@@ -40,10 +40,10 @@ class DifferentBaseIndex {
 
         std::stringstream solve(int n, int ts, int te);
 
-        DifferentBaseIndex() {}
-        DifferentBaseIndex(TemporalGraph * Graph);
-        ~DifferentBaseIndex();
+        OptimizedIndex() {}
+        OptimizedIndex(TemporalGraph * Graph);
+        ~OptimizedIndex();
 
 };
 
-void Dbase(DifferentBaseIndex * Index, int vertex_num, char * query_file, char * output_file);
+void optimized(OptimizedIndex * Index, int vertex_num, char * query_file, char * output_file);
