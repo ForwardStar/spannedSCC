@@ -159,16 +159,6 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
     f = new int[n];
     top=0;
     for (int ts = 0; ts <= tmax; ++ts) {
-        std::vector<std::pair<int, int>>::iterator it;
-        for (it = Graph->temporal_edge[ts].begin(); it != Graph->temporal_edge[ts].end(); it++) {
-            int u=it->first,v=it->second;
-            long long g=(((long long)it->first)<<35)+(((long long)it->second)<<10)+ts;
-            edge[ts].insert(g);
-        }
-        Graph->temporal_edge[ts].clear();
-        std::vector<std::pair<int,int>>().swap(Graph->temporal_edge[ts]);
-    }
-    for (int ts = 0; ts <= tmax; ++ts) {
         S[ts] = new std::set<long long> [tmax+1]();
         G[ts] = new std::vector<long long> [tmax+1]();
         //std::cerr<<ts<<'\n';
@@ -178,7 +168,16 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             f[u]=u;
         }
         for(int t=ts;t<=tmax;t++){
-            
+            if(ts==0){
+                std::vector<std::pair<int, int>>::iterator it;
+                for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
+                    int u=it->first,v=it->second;
+                    long long g=(((long long)it->first)<<35)+(((long long)it->second)<<10)+t;
+                    edge[t].insert(g);
+                }
+                Graph->temporal_edge[t].clear();
+                std::vector<std::pair<int,int>>().swap(Graph->temporal_edge[t]);
+            }
             std::set<long long>::iterator it;
             for (it = edge[t].begin(); it != edge[t].end(); it++) {
                 long long g=*it;
