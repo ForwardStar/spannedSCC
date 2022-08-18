@@ -23,8 +23,9 @@ class OptimizedIndex {
         int *Vis,*Vis2;
         int *f;
 
-        std::unordered_set<long long> *outLabel, *outLabel2;
-        std::unordered_set<long long>  **S;
+        std::vector<long long> *outLabel, *outLabel2;
+        std::set<long long>  **S;
+        std::set<long long> *edge;
         std::vector<long long> **G;
         std::stack<int> Stack;
         std::vector<int> CC;
