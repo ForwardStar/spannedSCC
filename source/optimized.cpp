@@ -239,10 +239,6 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                         if(find(v)!=g){
                             tmp.push_back(*iter);
                         }
-                        else{
-                            //std::cerr<<u<<' '<<v<<' '<<((*iter)&4095)<<' '<<t<<'\n';
-                            edge[t].insert(*iter);
-                        }
                     }
                 }
                 for(auto u:CC){
