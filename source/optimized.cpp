@@ -105,7 +105,6 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
     //std::cerr<<ts<<' '<<te<<' '<<cnt<<'\n';
     for(int u=0;u<n;u++){
         if(!Vis[u]){
-            int t=0;
             kosaraju5(u);
         }
     }
@@ -118,9 +117,6 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
         CC.clear();
         kosaraju3(u);
         std::sort(CC.begin(),CC.end());
-        /*for(auto v:CC){
-            CurrentCC[CC[0]].push_back(v);
-        }*/
         CurrentCC[CC[0]]=CC;
     }
     for (int u = 0; u < n; ++u) {
@@ -151,13 +147,23 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
     Sta = new int[n];
     Vis = new int[n];
     S = new std::set<long long> *[tmax+1]();
-    edge = new std::set<long long> [tmax+1]();
+    edge = new std::vector<long long> [tmax+1]();
     G = new std::vector<long long> *[tmax+1]();
     outLabel = new std::vector<long long>[n]();
     outLabel2 = new std::vector<long long>[n]();
     Vis2 = new int[n];
     f = new int[n];
     top=0;
+    for(int t=0;t<=tmax;t++){
+        std::vector<std::pair<int, int>>::iterator iter;
+            for (iter = Graph->temporal_edge[t].begin(); iter != Graph->temporal_edge[t].end(); iter++) {
+                int u=iter->first,v=iter->second;
+                long long g=(((long long)iter->first)<<37)+(((long long)iter->second)<<12)+t;
+                edge[t].push_back(g);
+            }
+            Graph->temporal_edge[t].clear();
+            std::vector<std::pair<int,int>>().swap(Graph->temporal_edge[t]);
+    }
     for (int ts = 0; ts <= tmax; ++ts) {
         S[ts] = new std::set<long long> [tmax+1]();
         G[ts] = new std::vector<long long> [tmax+1]();
@@ -168,17 +174,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             f[u]=u;
         }
         for(int t=ts;t<=tmax;t++){
-            if(ts==0){
-                std::vector<std::pair<int, int>>::iterator it;
-                for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
-                    int u=it->first,v=it->second;
-                    long long g=(((long long)it->first)<<37)+(((long long)it->second)<<12)+t;
-                    edge[t].insert(g);
-                }
-                Graph->temporal_edge[t].clear();
-                std::vector<std::pair<int,int>>().swap(Graph->temporal_edge[t]);
-            }
-            std::set<long long>::iterator it;
+            std::vector<long long>::iterator it;
             for (it = edge[t].begin(); it != edge[t].end(); it++) {
                 long long g=*it;
                 int u=find(g>>37),v=find((g>>12)&(33554431ll));
@@ -193,7 +189,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             for(int u=0;u<n;u++){
                 int g=find(u);
                 if(!Vis[g]){
-                    int t=0,top=0;
+                    int top=0;
                     kosaraju1(g);
                 }
             }
@@ -222,7 +218,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                         }
                         else{
                             //std::cerr<<u<<' '<<v<<' '<<((*iter)&4095)<<' '<<t<<'\n';
-                            edge[t].insert(*iter);
+                            edge[t].push_back(*iter);
                         }
                     }
                 }
@@ -247,26 +243,34 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                 }
                 outLabel[g]=tmp;
                 tmp.clear();
-                std::vector<long long>().swap(tmp);
+                //std::vector<long long>().swap(tmp);
             }
             
             /*std::cerr<<ts<<' '<<t<<'\n';
             for(int i=0;i<n;i++)std::cerr<<i<<' '<<find(i)<<'\n';*/
-
+            tmpedge.clear();
             for (it = edge[t].begin(); it != edge[t].end();) {
                 long long g=*it;
                 long long u=find(g>>37),v=find((g>>12)&(33554431ll)),tim=g&(4095);
                 if(tim <= ts){
-                    edge[t].erase(it++);continue;
-                }
-                if(u==v){it++;continue;}
-                if(t<tmax && tim>ts){
-                    //edge[t+1].insert(g);
-                    edge[t].erase(it++);
+                    //edge[t].erase(it++);
+                    it++;
                     continue;
                 }
+                if(u==v){tmpedge.push_back(g);it++;continue;}
+                if(t<tmax && tim>ts){
+                    //edge[t+1].insert(g);
+                    //edge[t].erase(it++);
+                    it++;
+                    continue;
+                }
+                tmpedge.push_back(g);
                 it++;
             }
+            std::set<long long>alfa(tmpedge.begin(),tmpedge.end());
+            tmpedge.assign(alfa.begin(),alfa.end());
+            edge[t]=tmpedge;
+            tmpedge.clear();
         }
         //std::cerr<<S[ts][ts].size()<<'\n';
         std::set<long long>::iterator iter;
@@ -315,7 +319,6 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
         }
     }*/
     //std::cerr<<cnt<<'\n';
-    
     delete [] f;
     delete [] edge;
 

@@ -25,7 +25,8 @@ class OptimizedIndex {
 
         std::vector<long long> *outLabel, *outLabel2;
         std::set<long long>  **S;
-        std::set<long long> *edge;
+        std::vector<long long> *edge;
+        std::vector<long long> tmpedge;
         std::vector<long long> **G;
         std::stack<int> Stack;
         std::vector<int> CC;
