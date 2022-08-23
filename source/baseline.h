@@ -10,7 +10,7 @@ class BaselineIndex {
     
         // unioN(ts, u, v, t): perform the union operation on u and v at time t with start time ts.
         void unioN(int ts, int u, int v, int t);
-
+        bool hashfind(int u,int v);
         void tarjan(int now, int &t, int &ts, int &te);
 
         int *inOrder;
@@ -19,7 +19,7 @@ class BaselineIndex {
         bool *outOfStack;
         bool *Vis;
 
-        std::unordered_set<int> *outLabel;
+        std::list<int> **outLabel;
 
         std::stack<int> Stack;
 

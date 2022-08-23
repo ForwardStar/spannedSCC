@@ -1,7 +1,7 @@
 #include "commonfunctions.h"
 #include "temporal_graph.h"
 
-class DCindex{
+class DCIndex {
 
     private:
 
@@ -10,7 +10,7 @@ class DCindex{
         void fastUnion(int u, int v);
     
         int find(int ts,int u);
-    
+        bool hashfind(int u,int v);
         void unioN(int ts, int u, int v, int t);
         
         void tarjan(int now, int &t, int &te);
@@ -24,9 +24,9 @@ class DCindex{
         bool *Vis;
         bool *hasTarjaned;
 
-        std::unordered_set<long long> *hashedEdges;
+        std::list<std::pair<int, int>> *edges;
         std::vector<std::pair<int, int>> *toBeMerged;
-        std::unordered_set<int> *outLabel;
+        std::vector<int> **outLabel;
 
         std::stack<int> Stack;
 
@@ -40,10 +40,10 @@ class DCindex{
 
         std::stringstream solve(int n, int ts, int te);
         
-        DCindex() {}
-        DCindex(TemporalGraph * Graph);
-        ~DCindex();
+        DCIndex() {}
+        DCIndex(TemporalGraph * Graph);
+        ~DCIndex();
 
 };
 
-void DC(DCindex *Index, int vertex_num, char * query_file, char * output_file);
+void DC(DCIndex *Index, int vertex_num, char * query_file, char * output_file);

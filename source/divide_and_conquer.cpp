@@ -1,19 +1,13 @@
 #include "divide_and_conquer.h"
 #include "commonfunctions.h"
 
-int DCindex::fastFind(int u) {
+int DCIndex::fastFind(int u) {
 
-    if (f[u] == u) {
-        return u;
-    }
-    int mountu = fastFind(f[u]);
-    f[u] = mountu;
-    sz[mountu] = sz[u] + 1;
-    return mountu;
+    return f[u]==u?f[u]:f[u]=fastFind(f[u]);
 
 }
 
-void DCindex::fastUnion(int u, int v) {
+void DCIndex::fastUnion(int u, int v) {
 
     int mountu = fastFind(u);
     int mountv = fastFind(v);
@@ -23,12 +17,12 @@ void DCindex::fastUnion(int u, int v) {
             std::swap(mountu, mountv);
         }
         f[mountu] = mountv;
-        sz[mountv] = sz[mountu] + 1;
+        sz[mountv]==sz[mountu]? sz[mountv]++ : 1;
     }
 
 }
 
-int DCindex::find(int ts, int u) {
+int DCIndex::find(int ts, int u) {
     
     if (L[ts][u] != u) {
         return find(ts, L[ts][u]);
@@ -38,7 +32,7 @@ int DCindex::find(int ts, int u) {
 
 }
 
-void DCindex::unioN(int ts, int u, int v, int t) {
+void DCIndex::unioN(int ts, int u, int v, int t) {
 
     int mount_u = find(ts, u);
     int mount_v = find(ts, v);
@@ -50,30 +44,37 @@ void DCindex::unioN(int ts, int u, int v, int t) {
 
     // Merge the smaller connected component into the larger one.
     if (size[mount_u] < size[mount_v]) {
-        std::swap(u, v);
         std::swap(mount_u, mount_v);
     }
-    size[mount_u] += size[mount_v];
+    size[mount_u]==size[mount_v] ? size[mount_u]++ : 1;
     
     L[ts][mount_v] = mount_u;
     T[ts][mount_v] = t;
 
 }
 
-void DCindex::tarjan(int now, int &t, int &te) {
+bool DCIndex::hashfind(int u,int v){
+    for(auto g: outLabel[u][v%10]){
+        if(g==v)return true;
+    }
+    return false;
+}
+
+void DCIndex::tarjan(int now, int &t, int &te) {
 
     inOrder[now] = ++t;
     lowestOrder[now] = t;
     Vis[now] = true;
     Stack.push(now);
 
-    std::vector<int> to_delete;
-    std::unordered_set<int>::iterator it;
-    for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
+    //std::vector<int> to_delete;
+    std::vector<int>::iterator it;
+    for(int j=0;j<10;j++)
+    for (it = outLabel[now][j].begin(); it != outLabel[now][j].end(); it++) {
         int mount = fastFind(*it);
-        if (mount != *it) {
+        /*if (mount != *it) {
             to_delete.push_back(*it);
-        }
+        }*/
         if (!Vis[mount]) {
             tarjan(mount, t, te);
         }
@@ -82,14 +83,20 @@ void DCindex::tarjan(int now, int &t, int &te) {
         }
     }
 
-    std::vector<int>::iterator it_delete;
+    /*std::vector<int>::iterator it_delete;
     for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
         int mount = fastFind(*it_delete);
-        if (outLabel[now].find(mount) == outLabel[now].end()) {
-            outLabel[now].insert(mount);
+        if (!hashfind(now,mount)) {
+            outLabel[now][mount%10].push_back(mount);
         }
-        outLabel[now].erase(*it_delete);
-    }
+        std::vector<int>::iterator iter;
+        for(iter = outLabel[now][(*it_delete)%10].begin(); iter!=outLabel[now][(*it_delete)%10].end();iter++){
+            if((*iter) == (*it_delete)){
+                outLabel[now][(*it_delete)%10].erase(iter);
+                break;
+            }
+        }
+    }*/
 
     if (inOrder[now] == lowestOrder[now]) {
         std::vector<int> CurrentSCC;
@@ -103,31 +110,28 @@ void DCindex::tarjan(int now, int &t, int &te) {
         Stack.pop();
         std::vector<int>::iterator it;
         for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
+            if (fastFind(*it) != fastFind(*CurrentSCC.begin())) {
+                toBeMerged[te].push_back(std::pair<int, int>(*it, *CurrentSCC.begin()));
+            }
             fastUnion(*it, *CurrentSCC.begin());
-            toBeMerged[te].push_back(std::pair<int, int>(*it, *CurrentSCC.begin()));
         }
         int mount = fastFind(*CurrentSCC.begin());
-        for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
-            if (*it == mount) {
-                continue;
+        //for (it = CurrentSCC.begin(); it != CurrentSCC.end(); it++) {
+            for(int j=0;j<10;j++){
+                outLabel[mount][j].clear();
             }
-            std::unordered_set<int>::iterator it1;
-            for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
-                int mount_edge = fastFind(*it1);
-                if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
-                    outLabel[mount].insert(mount_edge);
-                }
-            }
-        }
+        //}
         CurrentSCC.clear();
-        std::vector<int> (CurrentSCC).swap(CurrentSCC);
+        //std::vector<int> (CurrentSCC).swap(CurrentSCC);
     }
 
     outOrder[now] = ++t;
 
 }
 
-DCindex::~DCindex() {
+
+
+DCIndex::~DCIndex() {
 
     for (int ts = 0; ts <= tmax; ++ts) {
         delete [] L[ts];
@@ -139,7 +143,7 @@ DCindex::~DCindex() {
 
 }
 
-DCindex::DCindex(TemporalGraph * Graph) {
+DCIndex::DCIndex(TemporalGraph * Graph) {
 
     int start_time = time(NULL);
 
@@ -155,9 +159,12 @@ DCindex::DCindex(TemporalGraph * Graph) {
     inOrder = new int[n];
     outOrder = new int[n];
     lowestOrder = new int[n];
-    hashedEdges = new std::unordered_set<long long>[tmax + 1]();
+    edges = new std::list<std::pair<int, int>>[tmax + 1]();
     toBeMerged = new std::vector<std::pair<int, int>>[tmax + 1]();
-    outLabel = new std::unordered_set<int>[n]();
+    outLabel = new std::vector<int> *[n]();
+    for(int u=0;u<n;u++){
+        outLabel[u] = new std::vector<int>[10]();
+    }
     f = new int[n];
     sz = new int[n];
     for (int ts = 0; ts <= tmax; ++ts) {
@@ -177,10 +184,10 @@ DCindex::DCindex(TemporalGraph * Graph) {
         for (int t = ts; t <= tmax; ++t) {
             hasTarjaned[t] = false;
             toBeMerged[t].clear();
-            hashedEdges[t].clear();
+            edges[t].clear();
             std::vector<std::pair<int, int>>::iterator it;
             for (it = Graph->temporal_edge[t].begin(); it != Graph->temporal_edge[t].end(); it++) {
-                hashedEdges[t].insert((long long)it->first * n + it->second);
+                edges[t].push_back(std::pair<int, int>(it->first, it->second));
             }
         }
 
@@ -188,30 +195,33 @@ DCindex::DCindex(TemporalGraph * Graph) {
             for (int u = 0; u < n; ++u) {
                 f[u] = u;
                 sz[u] = 1;
-                outLabel[u].clear();
+                for(int j=0;j<10;j++)
+                outLabel[u][j].clear();
             }
 
             // start BFS
             for (int j = ts; j <= tmax; j += i) {
+                int te = std::min(tmax, j + i - 1);
+
                 // absorb edges in neighbour nodes
-                for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
-                    std::unordered_set<long long>::iterator it;
-                    for (it = hashedEdges[t].begin(); it != hashedEdges[t].end(); it++) {
-                        int u = *it / n;
-                        int v = *it % n;
-                        int mountu = fastFind(u);
-                        int mountv = fastFind(v);
-                        if (j != ts) {
-                            if (mountu == mountv || inOrder[mountu] < inOrder[mountv] && outOrder[mountu] > outOrder[mountv]) {
-                                continue;
+                if (!hasTarjaned[te]) {
+                    for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
+                        std::list<std::pair<int, int>>::iterator it;
+                        for (it = edges[t].begin(); it != edges[t].end();) {
+                            int mountu = fastFind(it->first);
+                            int mountv = fastFind(it->second);
+                            if (!hashfind(mountu,mountv)) {
+                                outLabel[mountu][mountv%10].push_back(mountv);
+                                it++;
+                            }
+                            else {
+                                edges[t].erase(it++);
                             }
                         }
-                        outLabel[mountu].insert(mountv);
                     }
                 }
 
                 // perform SCC tarjan
-                int te = std::min(tmax, j + i - 1);
                 if (!hasTarjaned[te]) {
                     for (int u = 0; u < n; u++) {
                         if (fastFind(u) != u) {
@@ -226,6 +236,7 @@ DCindex::DCindex(TemporalGraph * Graph) {
                     int t = 0;
                     for (int u = 0; u < n; u++) {
                         if (!Vis[u]) {
+                            t=0;
                             tarjan(u, t, te);
                         }
                     }
@@ -246,20 +257,18 @@ DCindex::DCindex(TemporalGraph * Graph) {
 
                 // select an edge set for next level
                 for (int t = j; t <= std::min(tmax, j + i - 1); ++t) {
-                    std::unordered_set<long long>::iterator it;
-                    for (it = hashedEdges[t].begin(); it != hashedEdges[t].end();) {
-                        int u = *it / n;
-                        int v = *it % n;
-                        int mountu = fastFind(u);
-                        int mountv = fastFind(v);
+                    std::list<std::pair<int, int>>::iterator it;
+                    for (it = edges[t].begin(); it != edges[t].end();) {
+                        int mountu = fastFind(it->first);
+                        int mountv = fastFind(it->second);
                         if (mountu == mountv) {
                             it++;
                         }
                         else {
                             if (j + i <= tmax) {
-                                hashedEdges[j + i].insert((long long)mountu * n + mountv);
+                                edges[j + i].push_back(std::pair<int, int>(mountu, mountv));
                             }
-                            hashedEdges[t].erase(it++);
+                            edges[t].erase(it++);
                         }
                     }
                 }
@@ -275,7 +284,7 @@ DCindex::DCindex(TemporalGraph * Graph) {
     delete [] inOrder;
     delete [] outOrder;
     delete [] lowestOrder;
-    delete [] hashedEdges;
+    delete [] edges;
     delete [] toBeMerged;
     delete [] outLabel;
     delete [] f;
@@ -283,7 +292,7 @@ DCindex::DCindex(TemporalGraph * Graph) {
     
 }
 
-std::stringstream DCindex::solve(int n, int ts, int te) {
+std::stringstream DCIndex::solve(int n, int ts, int te) {
 
     std::stringstream Ans;
     int *Vis = new int[n];
@@ -339,7 +348,7 @@ std::stringstream DCindex::solve(int n, int ts, int te) {
 
 
 
-void DC(DCindex * Index, int vertex_num, char * query_file, char * output_file) {
+void DC(DCIndex * Index, int vertex_num, char * query_file, char * output_file) {
 
     int ts, te;
     int query_num = 0;
