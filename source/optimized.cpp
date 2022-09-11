@@ -109,7 +109,6 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
         }
     }
     for(int u=0;u<n;u++)Vis[u]=0;
-
     while(top){
         int t=0;
         int u=Sta[top];top--;
