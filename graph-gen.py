@@ -2,6 +2,7 @@ import os
 import time
 import threading
 import tarfile
+import gzip
 
 headers = {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}
 
@@ -74,7 +75,10 @@ def takeThird(triple):
     return triple[2]
 
 def move_data_file(source, destination):
-    source = open(os.path.join(os.path.join('datasets', source), "out." + source), "r")
+    if source.endswith(".txt"):
+        source = open(os.path.join('datasets', source), "r")
+    else:
+        source = open(os.path.join(os.path.join('datasets', source), "out." + source), "r")
     lines = source.readlines()
     destination = open(destination, "w")
     destination.writelines(lines)
@@ -110,15 +114,23 @@ def normalize(filename):
 if __name__ == "__main__":
     # download datasets
     DATASETS_URL = ["http://konect.cc/files/download.tsv.dblp-cite.tar.bz2",
-                    "http://konect.cc/files/download.tsv.flickr-growth.tar.bz2"]
+                    "http://konect.cc/files/download.tsv.flickr-growth.tar.bz2",
+                    "http://konect.cc/files/download.tsv.wikipedia-growth.tar.bz2",
+                    "https://snap.stanford.edu/data/email-Eu-core-temporal.txt.gz",
+                    "https://snap.stanford.edu/data/CollegeMsg.txt.gz"]
     if os.path.isdir("datasets") is False or len(os.listdir("datasets")) < len(DATASETS_URL):
-        print("Downloading datasets...")
+        need_download = False
         if os.path.isdir("datasets") is False:
             os.mkdir("datasets")
         for url in DATASETS_URL:
             path = os.path.join("datasets", url.split('/')[-1])
-            if not os.path.exists(os.path.join("datasets", path.split('.')[2])):
-                download(url, path)
+            if not os.path.exists(path):
+                if (path.split('.')[-1] == "bz2" and not os.path.exists(os.path.join("datasets", path.split('.')[2]))) or \
+                    (path.split('.')[-1] == "gz" and not os.path.exists(path.split('.')[0] + '.' + path.split('.')[1])):
+                        if not need_download:
+                            need_download = True
+                            print("Downloading datasets...")
+                        download(url, path)
 
     # extract all datasets
     waiting_message = "Extracting datasets..."
@@ -130,6 +142,12 @@ if __name__ == "__main__":
         if file.endswith(".tar.bz2"):
             archive = tarfile.open(os.path.join("datasets", file), "r:bz2")
             archive.extractall("datasets")
+            os.remove(os.path.join("datasets", file))
+        elif file.endswith(".txt.gz"):
+            archive = gzip.GzipFile(os.path.join("datasets", file))
+            out = open(os.path.join("datasets", file.split('.')[0] + "." + file.split('.')[1]), "wb")
+            out.write(archive.read())
+            archive.close()
             os.remove(os.path.join("datasets", file))
     is_finished = True
     thread_extract_datasets.join()
@@ -144,6 +162,8 @@ if __name__ == "__main__":
     print("Datasets:")
     print("0. naive")
     for file in file_ls:
+        if file.endswith(".txt"):
+            file = file.split(".")[0]
         print(str(count) + ".", file)
         count += 1
     user_input = input("Select a graph dataset (0-" + str(count - 1) + "): ")
