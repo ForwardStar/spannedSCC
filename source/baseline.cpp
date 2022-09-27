@@ -10,14 +10,6 @@ int BaselineIndex::find(int ts, int u) {
 
 }
 
-bool BaselineIndex::hashfind(int u,int v){
-    for(auto g: outLabel[u][v%10]){
-        if(g==v)return true;
-    }
-    return false;
-}
-
-
 void BaselineIndex::unioN(int ts, int u, int v, int t) {
 
     int mount_u = find(ts, u);
@@ -49,9 +41,8 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
 
     std::vector<int> to_delete;
 
-    std::list<int>::iterator it;
-    for(int j=0;j<10;j++)
-    for (it = outLabel[now][j].begin(); it != outLabel[now][j].end(); it++) {
+    std::unordered_set<int>::iterator it;
+    for (it = outLabel[now].begin(); it != outLabel[now].end(); it++) {
         int mount = find(ts, *it);
         if (mount != *it) {
             to_delete.push_back(*it);
@@ -64,15 +55,6 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
         }
     }
 
-    std::vector<int>::iterator it_delete;
-    for (it_delete = to_delete.begin(); it_delete != to_delete.end(); it_delete++) {
-        int mount = find(ts, *it_delete);
-        if (!hashfind(now,mount)) {
-            outLabel[now][mount%10].push_back(mount);
-        }
-        std::vector<int>::iterator iter;
-        outLabel[now][(*it_delete)%10].remove((*it_delete));
-    }
 
     if (inOrder[now] == lowestOrder[now]) {
         std::vector<int> CurrentSCC;
@@ -93,12 +75,11 @@ void BaselineIndex::tarjan(int now, int &t, int &ts, int &te) {
             if (*it == mount) {
                 continue;
             }
-            std::list<int>::iterator it1;
-            for(int j=0;j<10;j++)
-            for (it1 = outLabel[*it][j].begin(); it1 != outLabel[*it][j].end(); it1++) {
+            std::unordered_set<int>::iterator it1;
+            for (it1 = outLabel[*it].begin(); it1 != outLabel[*it].end(); it1++) {
                 int mount_edge = find(ts, *it1);
-                if (!hashfind(mount,mount_edge)) {
-                    outLabel[mount][mount_edge%10].push_back(mount_edge);
+                if (outLabel[mount].find(mount_edge) == outLabel[mount].end()) {
+                    outLabel[mount].insert(mount_edge);
                 }
             }
         }
@@ -178,10 +159,8 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     inOrder = new int[n];
     outOrder = new int[n];
     lowestOrder = new int[n];
-    outLabel = new std::list<int> *[n]();
-    for(int u=0;u<n;u++){
-        outLabel[u] = new std::list<int>[10]();
-    }
+    outLabel = new std::unordered_set<int>[n]();
+
     for (int ts = 0; ts <= tmax; ++ts) {
         L[ts] = new int[n];
         T[ts] = new int[n];
@@ -193,8 +172,7 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     
     for (int ts = 0; ts <= tmax; ++ts) {
         for (int u = 0; u < n; ++u) {
-            for(int j=0;j<10;j++)
-                outLabel[u][j].clear();
+            outLabel[u].clear();
             outOfStack[u] = 0;
             Vis[u] = 0;
             size[u] = 1;
@@ -202,8 +180,8 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
 
         std::vector<std::pair<int, int>>::iterator it;
         for (it = Graph->temporal_edge[ts].begin(); it != Graph->temporal_edge[ts].end(); it++) {
-            if (!hashfind(it->first,it->second)) {
-                outLabel[it->first][it->second%10].push_back(it->second);
+            if (outLabel[it->first].find(it->second) == outLabel[it->first].end()) {
+                outLabel[it->first].insert(it->second);
             }
         }
 
@@ -235,8 +213,8 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
                 }
 
                 // shift edges to the mounted vertices of SCCs
-                if (!hashfind(mountu,mountv)) {
-                    outLabel[mountu][mountv%10].push_back(mountv);
+                if (outLabel[mountu].find(mountv) == outLabel[mountu].end()) {
+                    outLabel[mountu].insert(mountv);
                 }
             }
             for (int u = 0; u < n; ++u) {
@@ -247,7 +225,7 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
         }
         putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
     }
-
+    std::cout<<"space required:"<<n*(tmax+1)*8<<"bytes"<<std::endl;
     delete [] size;
     delete [] outOfStack;
     delete [] Vis;

@@ -109,7 +109,6 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
         }
     }
     for(int u=0;u<n;u++)Vis[u]=0;
-
     while(top){
         int t=0;
         int u=Sta[top];top--;
@@ -130,7 +129,6 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
         }
         Ans << "}\n";
     }
-
     delete [] CurrentCC;
     return Ans;
 
@@ -175,13 +173,16 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
         }
         for(int t=ts;t<=tmax;t++){
             std::vector<long long>::iterator it;
+            tmpedge.clear();
             for (it = edge[t].begin(); it != edge[t].end(); it++) {
                 long long g=*it;
-                int u=find(g>>37),v=find((g>>12)&(33554431ll));
-                if(u==v)continue;
+                int u=find(g>>37),v=find((g>>12)&(33554431ll)),tim=g&(4095);
+                if(u==v){tmpedge.push_back(g);continue;}
+                if(tim<ts)continue;
                 outLabel[u].push_back(g);
                 outLabel2[v].push_back(g);
             }
+            edge[t]=tmpedge;
             for(int u=0;u<n;u++){
                 Vis2[u]=0;
                 Vis[u]=0;
@@ -247,7 +248,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             }
             
             /*std::cerr<<ts<<' '<<t<<'\n';
-            for(int i=0;i<n;i++)std::cerr<<i<<' '<<find(i)<<'\n';*/
+            for(int i=0;i<n;i++)std::cerr<<i<<' '<<find(i)<<'\n';
             tmpedge.clear();
             for (it = edge[t].begin(); it != edge[t].end();) {
                 long long g=*it;
@@ -259,18 +260,14 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                 }
                 if(u==v){tmpedge.push_back(g);it++;continue;}
                 if(t<tmax && tim>ts){
-                    //edge[t+1].insert(g);
-                    //edge[t].erase(it++);
                     it++;
                     continue;
                 }
                 tmpedge.push_back(g);
                 it++;
             }
-            std::set<long long>alfa(tmpedge.begin(),tmpedge.end());
-            tmpedge.assign(alfa.begin(),alfa.end());
             edge[t]=tmpedge;
-            tmpedge.clear();
+            tmpedge.clear();*/
         }
         //std::cerr<<S[ts][ts].size()<<'\n';
         std::set<long long>::iterator iter;
@@ -311,14 +308,15 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
         }
         S[lt][tmax].clear();
     }
-    /*int cnt=0,tot=0;
+    int cnt=0,tot=0;
     for(int ts=0;ts<=tmax;ts++){
         for(int te=ts;te<=tmax;te++){
             cnt+=G[ts][te].size();
-            std::cerr<<ts<<' '<<te<<' '<<G[ts][te].size()<<'\n';
+            //std::cerr<<ts<<' '<<te<<' '<<G[ts][te].size()<<'\n';
         }
-    }*/
-    //std::cerr<<cnt<<'\n';
+    }
+    std::cout<<"number of effective edges: "<<cnt<<std::endl;
+    std::cout<<"space acquired: "<<cnt*8<<" bytes"<<std::endl;
     delete [] f;
     delete [] edge;
 
