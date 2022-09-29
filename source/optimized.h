@@ -23,11 +23,11 @@ class OptimizedIndex {
         int *Vis,*Vis2;
         int *f;
 
-        std::vector<long long> *outLabel, *outLabel2;
-        std::set<long long>  **S;
-        std::vector<long long> *edge;
-        std::vector<long long> tmpedge;
-        std::vector<long long> **G;
+        std::vector<std::pair<long long,int>> *outLabel, *outLabel2;
+        std::set<std::pair<long long,int>>  **S;
+        std::vector<std::pair<long long,int>> *edge;
+        std::vector<std::pair<long long,int>> tmpedge;
+        std::vector<std::pair<long long,int>> **G;
         std::stack<int> Stack;
         std::vector<int> CC;
 
