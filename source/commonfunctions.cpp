@@ -4,7 +4,7 @@ void putProcess(double procedure, unsigned long long time_used) {
 
     std::cout << std::fixed << std::setprecision(3) << "Processing: " << procedure * 100 << "%" \
             << "\t\tTime: " << timeFormatting(time_used).str() \
-            << "\t\tEstimate remaining time: " << timeFormatting(int((1 - procedure) / procedure * time_used)).str() << std::endl;
+            << "\t\tEstimate remaining time: " << timeFormatting((1 - procedure) / procedure * time_used).str() << std::endl;
     
 }
 
