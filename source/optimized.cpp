@@ -308,24 +308,32 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
         }
         S[lt][tmax].clear();
     }
-    int cnt=0,tot=0;
-    for(int ts=0;ts<=tmax;ts++){
-        for(int te=ts;te<=tmax;te++){
-            cnt+=G[ts][te].size();
-            //std::cerr<<ts<<' '<<te<<' '<<G[ts][te].size()<<'\n';
-        }
-    }
-    std::cout<<"number of effective edges: "<<cnt<<std::endl;
-    std::cout<<"space required: "<<cnt*8<<" bytes"<<std::endl;
+
     delete [] f;
     delete [] edge;
 
 }
 
 OptimizedIndex::~OptimizedIndex() {
+    
+    for (int t = 0; t <= tmax; ++t) {
+        delete G[t];
+    }
+    delete [] G;
 
-    delete [] L;
-    delete [] T;
+}
+
+unsigned long long OptimizedIndex::size() {
+
+    unsigned long long memory = 0;
+    for (int ts = 0; ts <= tmax; ts++) {
+        for (int te = ts; te <= tmax; te++) {
+            memory += G[ts][te].size();
+        }
+    }
+    // std::cout << "number of effective edges: " << cnt << std::endl;
+    memory <<= 3;
+    return memory;
 
 }
 
