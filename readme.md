@@ -22,6 +22,6 @@ sh query-gen.sh
 sh run.sh $1
 ```
 
-where ``$1`` is "Online" or "Baseline", indicating which solution to use.
+where ``$1`` is ``Online``, ``Baseline`` or ``Optimized``, indicating which solution to use.
 
 The output is in the file ``output.txt``.
