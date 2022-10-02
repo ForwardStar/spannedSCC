@@ -114,15 +114,15 @@ void online(TemporalGraph * Graph, char * query_file, char * output_file) {
     fin = std::ifstream(query_file);
 
     int i = 0;
-    int start_time = time(NULL);
+    unsigned long long start_time = currentTime();
     while (fin >> ts >> te) {
         // Perform SCC Tarjan search
         fout << solver->onlineSearch(Graph, ts, te).str() << std::endl;
-        putProcess(double(++i) / query_num, difftime(time(NULL), start_time));
+        putProcess(double(++i) / query_num, currentTime() - start_time);
     }
 
     delete solver;
 
-    std::cout << "Average: " << timeFormatting(difftime(time(NULL), start_time) / query_num).str() << std::endl;
+    std::cout << "Average: " << timeFormatting((currentTime() - start_time) / query_num).str() << std::endl;
 
 }

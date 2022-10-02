@@ -35,16 +35,14 @@ class OptimizedIndex {
 
         // n, m, tmax: graph information.
         int n, m, tmax;
-        
-        int *L;
-        int *T;
-        int *size;
 
         std::stringstream solve(int n, int ts, int te);
 
         OptimizedIndex() {}
         OptimizedIndex(TemporalGraph * Graph);
         ~OptimizedIndex();
+
+        unsigned long long size();
 
 };
 

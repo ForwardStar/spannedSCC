@@ -21,11 +21,11 @@ void BaselineIndex::unioN(int ts, int u, int v, int t) {
     }
 
     // Merge the smaller connected component into the larger one.
-    if (size[mount_u] < size[mount_v]) {
+    if (num[mount_u] < num[mount_v]) {
         std::swap(u, v);
         std::swap(mount_u, mount_v);
     }
-    size[mount_u] += size[mount_v];
+    num[mount_u] += num[mount_v];
     
     L[ts][mount_v] = mount_u;
     T[ts][mount_v] = t;
@@ -145,15 +145,14 @@ std::stringstream BaselineIndex::solve(int n, int ts, int te) {
 
 BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
     
-    int start_time = time(NULL);
-    start_time = time(NULL);
+    unsigned long long start_time = currentTime();
 
     n = Graph->numOfVertices();
     m = Graph->numOfEdges();
     tmax = Graph->tmax;
     L = new int *[tmax + 1];
     T = new int *[tmax + 1];
-    size = new int[n];
+    num = new int[n];
     outOfStack = new bool[n];
     Vis = new bool[n];
     inOrder = new int[n];
@@ -175,7 +174,7 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
             outLabel[u].clear();
             outOfStack[u] = 0;
             Vis[u] = 0;
-            size[u] = 1;
+            num[u] = 1;
         }
 
         std::vector<std::pair<int, int>>::iterator it;
@@ -223,10 +222,10 @@ BaselineIndex::BaselineIndex(TemporalGraph * Graph) {
                 }
             }
         }
-        putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
+        putProcess(double(ts) / tmax, currentTime() - start_time);
     }
-    std::cout<<"space required:"<<n*(tmax+1)*8<<"bytes"<<std::endl;
-    delete [] size;
+
+    delete [] num;
     delete [] outOfStack;
     delete [] Vis;
     delete [] inOrder;
@@ -248,6 +247,12 @@ BaselineIndex::~BaselineIndex() {
 
 }
 
+unsigned long long BaselineIndex::size() {
+
+    return (unsigned long long)(tmax + 1) * (unsigned long long)(tmax + 1);
+
+}
+
 void baseline(BaselineIndex * Index, int vertex_num, char * query_file, char * output_file) {
 
     int ts, te;
@@ -262,12 +267,12 @@ void baseline(BaselineIndex * Index, int vertex_num, char * query_file, char * o
     fin = std::ifstream(query_file);
 
     int i = 0;
-    int start_time = time(NULL);
+    unsigned long long start_time = currentTime();
     while (fin >> ts >> te) {
         fout << Index->solve(vertex_num, ts, te).str() << std::endl;
-        putProcess(double(++i) / query_num, difftime(time(NULL), start_time));
+        putProcess(double(++i) / query_num, currentTime() - start_time);
     }
 
-    std::cout << "Average (per query): " << timeFormatting(difftime(time(NULL), start_time) / query_num).str() << std::endl;
+    std::cout << "Average (per query): " << timeFormatting((currentTime() - start_time) / query_num).str() << std::endl;
 
 }

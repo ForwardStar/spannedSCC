@@ -30,13 +30,15 @@ class BaselineIndex {
         
         int **L;
         int **T;
-        int *size;
+        int *num;
 
         std::stringstream solve(int n, int ts, int te);
 
         BaselineIndex() {}
         BaselineIndex(TemporalGraph * Graph);
         ~BaselineIndex();
+
+        unsigned long long size();
 
 };
 
