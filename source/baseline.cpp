@@ -249,7 +249,7 @@ BaselineIndex::~BaselineIndex() {
 
 unsigned long long BaselineIndex::size() {
 
-    return (unsigned long long)(tmax + 1) * (unsigned long long)(tmax + 1);
+    return (unsigned long long)(n) * (unsigned long long)(tmax + 1)*8;
 
 }
 

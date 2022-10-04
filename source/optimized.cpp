@@ -136,8 +136,7 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
 
 OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
     
-    int start_time = time(NULL);
-    start_time = time(NULL);
+    unsigned long long start_time = currentTime();
 
     n = Graph->numOfVertices();
     m = Graph->numOfEdges();
@@ -171,6 +170,8 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             outLabel2[u].clear();
             f[u]=u;
         }
+        std::unordered_set<int> point;
+        point.clear();
         for(int t=ts;t<=tmax;t++){
             std::vector<std::pair<long long,int>>::iterator it;
             tmpedge.clear();
@@ -179,6 +180,8 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                 int u=find(g.first>>37),v=find((g.first>>12)&(33554431ll)),tim=g.second;
                 if(u==v){tmpedge.push_back(g);continue;}
                 if(tim<ts)continue;
+                point.insert(u);
+                point.insert(v);
                 outLabel[u].push_back(g);
                 outLabel2[v].push_back(g);
             }
@@ -187,8 +190,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                 Vis2[u]=0;
                 Vis[u]=0;
             }
-            for(int u=0;u<n;u++){
-                int g=find(u);
+            for(auto g:point){
                 if(!Vis[g]){
                     int top=0;
                     kosaraju1(g);
@@ -300,7 +302,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             }
             S[lt][ts-1].clear();
         }
-        putProcess(double(ts) / tmax, difftime(time(NULL), start_time));
+        putProcess(double(ts) / tmax, currentTime() - start_time);
     }
     for(int lt=0;lt<=tmax;lt++){
         for(auto g:S[lt][tmax]){
@@ -332,7 +334,7 @@ unsigned long long OptimizedIndex::size() {
         }
     }
     // std::cout << "number of effective edges: " << cnt << std::endl;
-    memory <<= 3;
+    memory *= 12;
     return memory;
 
 }
@@ -351,12 +353,12 @@ void optimized(OptimizedIndex * Index, int vertex_num, char * query_file, char *
     fin = std::ifstream(query_file);
 
     int i = 0;
-    int start_time = time(NULL);
+    unsigned long long start_time = currentTime();
     while (fin >> ts >> te) {
         fout << Index->solve(vertex_num, ts, te).str() << std::endl;
-        putProcess(double(++i) / query_num, difftime(time(NULL), start_time));
+        putProcess(double(++i) / query_num, currentTime() - start_time);
     }
 
-    std::cout << "Average (per query): " << timeFormatting(difftime(time(NULL), start_time) / query_num).str() << std::endl;
+    std::cout << "Average (per query): " << timeFormatting((currentTime() - start_time) / query_num).str() << std::endl;
 
 }
