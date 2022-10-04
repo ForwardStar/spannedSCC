@@ -170,6 +170,8 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             outLabel2[u].clear();
             f[u]=u;
         }
+        std::unordered_set<int> point;
+        point.clear();
         for(int t=ts;t<=tmax;t++){
             std::vector<std::pair<long long,int>>::iterator it;
             tmpedge.clear();
@@ -178,6 +180,8 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                 int u=find(g.first>>37),v=find((g.first>>12)&(33554431ll)),tim=g.second;
                 if(u==v){tmpedge.push_back(g);continue;}
                 if(tim<ts)continue;
+                point.insert(u);
+                point.insert(v);
                 outLabel[u].push_back(g);
                 outLabel2[v].push_back(g);
             }
@@ -186,8 +190,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                 Vis2[u]=0;
                 Vis[u]=0;
             }
-            for(int u=0;u<n;u++){
-                int g=find(u);
+            for(auto g:point){
                 if(!Vis[g]){
                     int top=0;
                     kosaraju1(g);
@@ -331,7 +334,7 @@ unsigned long long OptimizedIndex::size() {
         }
     }
     // std::cout << "number of effective edges: " << cnt << std::endl;
-    memory <<= 3;
+    memory *= 12;
     return memory;
 
 }
