@@ -23,13 +23,19 @@ class OptimizedIndex {
         int *Vis,*Vis2;
         int *f;
 
+        std::set<std::pair<long long,int>> key;
         std::vector<std::pair<long long,int>> *outLabel, *outLabel2;
-        std::set<std::pair<long long,int>>  **S;
+        std::vector<std::set<std::pair<long long,int>>>  *S;
+        std::vector<int> *actual_time;
         std::vector<std::pair<long long,int>> *edge;
         std::vector<std::pair<long long,int>> tmpedge;
-        std::vector<std::pair<long long,int>> **G;
+        std::vector<std::vector<std::pair<long long,int>>> *G;
         std::stack<int> Stack;
         std::vector<int> CC;
+        std::vector<std::pair<long long,int>> *newedge;
+        std::set<std::pair<long long,int>> beta;
+        std::set<std::pair<long long,int>> tmper;
+        std::vector<std::pair<long long,int>> alfa;
 
     public:
 

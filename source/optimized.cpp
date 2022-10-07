@@ -54,7 +54,8 @@ void OptimizedIndex::kosaraju2(int now,int ts){
         int v=find(int(g.first>>37));
         if(Vis[v]==0){
             //std::cerr<<now<<' '<<v<<' '<<col<<'!'<<'\n';
-            S[ts][ts].insert(g);
+            //S[ts][ts].insert(g);
+            key.insert(g);
             kosaraju2(v,ts);
         }
     }
@@ -70,7 +71,8 @@ void OptimizedIndex::kosaraju4(int now, int ori, int ts){
             continue;
         }
         if(Vis[v]==Vis[now]){
-            S[ts][ts].insert(g);
+            //S[ts][ts].insert(g);
+            key.insert(g);
             kosaraju4(v,ori,ts);
         }
     }
@@ -90,15 +92,19 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
     }
     int cnt=0;
     for(int i=0;i<=ts;i++){
-        for(int j=ts;j<=tmax;j++){
+        int l=actual_time[i].size();
+        for(int j=0;j<l;j++){
+            if(actual_time[i][j]<ts)continue;
             if(G[i][j].empty())continue;
             for(auto g:G[i][j]){
                 long long tim=g.second;
+                //if(tim<ts)continue;
                 if(tim>te)continue;
                 cnt++;
                 long long u=(g.first>>37),v=(g.first>>12)&(33554431ll);
                 outLabel[u].push_back(g);
                 outLabel2[v].push_back(g); 
+                //std::cerr<<u<<' '<<v<<' '<<tim<<'\n';
             }
         }
     }
@@ -143,9 +149,11 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
     tmax = Graph->tmax;
     Sta = new int[n];
     Vis = new int[n];
-    S = new std::set<std::pair<long long,int>> *[tmax+1]();
+    S = new std::vector<std::set<std::pair<long long,int>>> [tmax+1]();
     edge = new std::vector<std::pair<long long,int>> [tmax+1]();
-    G = new std::vector<std::pair<long long,int>> *[tmax+1]();
+    newedge = new std::vector<std::pair<long long,int>> [tmax+1]();
+    G = new std::vector<std::vector<std::pair<long long,int>>> [tmax+1]();
+    actual_time= new std::vector<int> [tmax+1]();
     outLabel = new std::vector<std::pair<long long,int>>[n]();
     outLabel2 = new std::vector<std::pair<long long,int>>[n]();
     Vis2 = new int[n];
@@ -161,22 +169,37 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             Graph->temporal_edge[t].clear();
             std::vector<std::pair<int,int>>().swap(Graph->temporal_edge[t]);
     }
+    std::set<std::pair<long long,int>> table;
     for (int ts = 0; ts <= tmax; ++ts) {
-        S[ts] = new std::set<std::pair<long long,int>> [tmax+1]();
-        G[ts] = new std::vector<std::pair<long long,int>> [tmax+1]();
-        //std::cerr<<ts<<'\n';
         for(int u=0;u<n;u++){
             outLabel[u].clear();
             outLabel2[u].clear();
             f[u]=u;
         }
-        std::unordered_set<int> point;
-        point.clear();
+        for(int i=0;i<=tmax;i++)newedge[i].clear();
+        for(auto g:key){
+            newedge[g.second].push_back(g);
+        }
+        table=key;
+        key.clear();
         for(int t=ts;t<=tmax;t++){
+            std::unordered_set<int> point;
+            point.clear();
             std::vector<std::pair<long long,int>>::iterator it;
             tmpedge.clear();
+            for(it = newedge[t].begin();it!=newedge[t].end();it++){
+                std::pair<long long,int> g=*it;
+                int u=find(g.first>>37),v=find((g.first>>12)&(33554431ll)),tim=g.second;
+                if(u==v){tmpedge.push_back(g);continue;}
+                if(tim<ts)continue;
+                point.insert(u);
+                point.insert(v);
+                outLabel[u].push_back(g);
+                outLabel2[v].push_back(g);
+            }
             for (it = edge[t].begin(); it != edge[t].end(); it++) {
                 std::pair<long long,int> g=*it;
+                if(table.find(g)!=table.end())continue;
                 int u=find(g.first>>37),v=find((g.first>>12)&(33554431ll)),tim=g.second;
                 if(u==v){tmpedge.push_back(g);continue;}
                 if(tim<ts)continue;
@@ -249,78 +272,111 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                 //std::vector<long long>().swap(tmp);
             }
             
-            /*std::cerr<<ts<<' '<<t<<'\n';
-            for(int i=0;i<n;i++)std::cerr<<i<<' '<<find(i)<<'\n';
-            tmpedge.clear();
-            for (it = edge[t].begin(); it != edge[t].end();) {
-                long long g=*it;
-                long long u=find(g>>37),v=find((g>>12)&(33554431ll)),tim=g&(4095);
-                if(tim <= ts){
-                    //edge[t].erase(it++);
-                    it++;
-                    continue;
-                }
-                if(u==v){tmpedge.push_back(g);it++;continue;}
-                if(t<tmax && tim>ts){
-                    it++;
-                    continue;
-                }
-                tmpedge.push_back(g);
-                it++;
-            }
-            edge[t]=tmpedge;
-            tmpedge.clear();*/
         }
-        //std::cerr<<S[ts][ts].size()<<'\n';
-        std::set<std::pair<long long,int>>::iterator iter;
-        for(iter=S[ts][ts].begin();iter!=S[ts][ts].end();){
-            int flag=0;
-            std::pair<long long,int> g=*iter;
-            //std::cerr<<((g>>12)&(33554431ll))<<' '<<(g>>37)<<' '<<(g&4095)<<'\n';
-            for(int lt=0;lt<ts;lt++){
-                if(S[lt][ts-1].find(g)!=S[lt][ts-1].end()){
-                    S[lt][ts].insert(g);
-                    S[lt][ts-1].erase(g);
-                    flag=1;
-                    break;
+        
+        tmper=key;
+        for(int lt=0;lt<ts;lt++){
+            int len=actual_time[lt].size();
+            if(len==0){
+                continue;
+            }
+            int tag=0;
+            if(actual_time[lt][len-1]!=ts-1){
+                //std::cerr<<lt<<' '<<ts<<' '<<actual_time[lt][len-1]<<'\n';
+                continue;
+            }
+            std::set<std::pair<long long,int>>::iterator iter;
+            std::set<std::pair<long long,int>>::iterator g;
+            
+            beta.clear();
+            //int cnt=0;
+            for(iter = S[lt][len-1].begin();iter!=S[lt][len-1].end();){
+                
+                if(tmper.find(*iter)!=tmper.end()){
+                    //cnt++;
+                    //std::cerr<<(*iter).first<<' '<<(*iter).second<<'\n';
+                    
+                    tmper.erase(*iter);
+                    beta.insert(*iter);
+                    S[lt][len-1].erase(iter++);
+                }
+                else{
+                    iter++;
+                    tag=1;
                 }
             }
-            if(flag){
-                if(S[ts][ts].size()==1){
-                    S[ts][ts].clear();
-                    break;
-                }
-                S[ts][ts].erase(iter++);
+            //std::cerr<<cnt<<'\n';
+            if(!tag){
+                S[lt][len-1]=beta;
+                actual_time[lt][len-1]=ts;
             }
-            else iter++;
+            else{
+                //std::cerr<<beta.size()<<'\n';
+                S[lt].push_back(beta);
+                actual_time[lt].push_back(ts);
+            }
         }
         for(int lt=0;lt<ts;lt++){
             //std::cerr<<lt<<' '<<ts<<' '<<S[lt][ts-1].size()<<'\n';
-            std::set<std::pair<long long,int>>::iterator iter;
-            for(iter=S[lt][ts-1].begin();iter!=S[lt][ts-1].end();iter++){
-                G[lt][ts-1].push_back(*iter);
+            int len=actual_time[lt].size();
+            for(int i=len-1;i>=0;i--){
+                if(actual_time[lt][i]<ts-1)break;
+                if(actual_time[lt][i]==ts-1){
+                    alfa.clear();
+                    std::set<std::pair<long long,int>>::iterator iter;
+                    for(iter=S[lt][i].begin();iter!=S[lt][i].end();iter++){
+                        alfa.push_back(*iter);
+                    }
+                    G[lt].push_back(alfa);
+                    std::vector<std::pair<long long,int>>().swap(alfa);
+                }
             }
-            S[lt][ts-1].clear();
         }
+        if(!tmper.empty()){
+            S[ts].push_back(tmper);
+            actual_time[ts].push_back(ts);
+        }
+       // std::cerr<<size()<<'\n';
         putProcess(double(ts) / tmax, currentTime() - start_time);
+        //if(ts==1)break;
     }
-    for(int lt=0;lt<=tmax;lt++){
-        for(auto g:S[lt][tmax]){
-            G[lt][tmax].push_back(g);
+        for(int lt=0;lt<=tmax;lt++){
+            //std::cerr<<lt<<' '<<ts<<' '<<S[lt][ts-1].size()<<'\n';
+            int len=actual_time[lt].size();
+            for(int i=len-1;i>=0;i--){
+                if(actual_time[lt][i]<tmax)break;
+                if(actual_time[lt][i]==tmax){
+                    
+                    alfa.clear();
+                    std::set<std::pair<long long,int>>::iterator iter;
+                    for(iter=S[lt][i].begin();iter!=S[lt][i].end();iter++){
+                        alfa.push_back(*iter);
+                    }
+                    G[lt].push_back(alfa);
+                }
+            }
         }
-        S[lt][tmax].clear();
-    }
-
+    /*for(int lt=0;lt<=tmax;lt++){
+        int len=actual_time[lt].size();
+        for(int i=0;i<len;i++){
+            alfa.clear();
+            std::set<std::pair<long long,int>>::iterator iter;
+            for(iter=S[lt][i].begin();iter!=S[lt][i].end();iter++){
+                alfa.push_back(*iter);
+            }
+            G[lt].push_back(alfa);
+        }
+    }*/
     delete [] f;
     delete [] edge;
-
+    delete [] S;
 }
 
 OptimizedIndex::~OptimizedIndex() {
     
-    for (int t = 0; t <= tmax; ++t) {
+    /*for (int t = 0; t <= tmax; ++t) {
         delete G[t];
-    }
+    }*/
     delete [] G;
 
 }
@@ -329,9 +385,14 @@ unsigned long long OptimizedIndex::size() {
 
     unsigned long long memory = 0;
     for (int ts = 0; ts <= tmax; ts++) {
-        for (int te = ts; te <= tmax; te++) {
-            memory += G[ts][te].size();
+        int len=actual_time[ts].size();
+        unsigned long long sz=0;
+        for (int te = 0; te < len; te++) {
+            //sz += S[ts][te].size();
+            sz+=G[ts][te].size();
         }
+       // std::cerr<<sz<<' '<<ts<<'\n';
+        memory+=sz;
     }
     // std::cout << "number of effective edges: " << cnt << std::endl;
     memory *= 12;
