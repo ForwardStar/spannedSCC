@@ -23,6 +23,8 @@ class OptimizedIndex {
         int *Vis,*Vis2;
         int *f;
 
+        std::vector<int> markedVertices;
+        std::vector<int> markedVertices2;
         std::set<std::pair<long long,int>> key;
         std::vector<std::pair<long long,int>> *outLabel, *outLabel2;
         std::vector<std::set<std::pair<long long,int>>>  *S;

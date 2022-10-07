@@ -14,6 +14,7 @@ int OptimizedIndex::find(int u) {
 void OptimizedIndex::kosaraju1(int now) {
     //std::cerr<<now<<' '<<t<<'\n';
     Vis[now] = 1;
+    markedVertices.push_back(now);
     for(auto g:outLabel[now]){
         int v=find((g.first>>12)&(33554431ll));
         //std::cerr<<now<<' '<<v<<'\n';
@@ -28,6 +29,7 @@ void OptimizedIndex::kosaraju1(int now) {
 void OptimizedIndex::kosaraju5(int now) {
     //std::cerr<<now<<' '<<t<<'\n';
     Vis[now] = 1;
+    markedVertices.push_back(now);
     for(auto g:outLabel[now]){
         int v=(g.first>>12)&(33554431ll);
         //std::cerr<<now<<'!'<<v<<'\n';
@@ -41,6 +43,7 @@ void OptimizedIndex::kosaraju5(int now) {
 void OptimizedIndex::kosaraju3(int now) {
     CC.push_back(now);
     Vis[now] = 1;
+    markedVertices.push_back(now);
     for(auto g:outLabel2[now]){
         long long v=g.first>>37;
         //std::cerr<<now<<' '<<v<<'\n';
@@ -50,6 +53,7 @@ void OptimizedIndex::kosaraju3(int now) {
 }
 void OptimizedIndex::kosaraju2(int now,int ts){
     Vis[now]=col;
+    markedVertices.push_back(now);
     for(auto g:outLabel2[now]){
         int v=find(int(g.first>>37));
         if(Vis[v]==0){
@@ -63,6 +67,7 @@ void OptimizedIndex::kosaraju2(int now,int ts){
 void OptimizedIndex::kosaraju4(int now, int ori, int ts){
     
     Vis2[now]=1;
+    markedVertices2.push_back(now);
     f[now]=ori;
     CC.push_back(now);
     for(auto g:outLabel[now]){
@@ -209,19 +214,24 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
                 outLabel2[v].push_back(g);
             }
             edge[t]=tmpedge;
-            for(int u=0;u<n;u++){
+            for(auto u:markedVertices2){
                 Vis2[u]=0;
-                Vis[u]=0;
             }
+            for (auto u:markedVertices){
+                Vis[u] = 0;
+            }
+            markedVertices2.clear();
+            markedVertices.clear();
             for(auto g:point){
                 if(!Vis[g]){
                     int top=0;
                     kosaraju1(g);
                 }
             }
-            for(int u=0;u<n;u++){
+            for(auto u:markedVertices){
                 Vis[u]=0;
             }
+            markedVertices.clear();
             col=0;
             //std::cerr<<ts<<' '<<t<<'\n';
             while(top){
