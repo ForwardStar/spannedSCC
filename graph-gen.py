@@ -122,7 +122,7 @@ def normalize(filename):
     # wrap up
     text = ""
     for line in contents:
-        text += vertex_map[int(line[0])] + " " + vertex_map[int(line[1])] + " " + str(line[3]) + "\n"
+        text += str(vertex_map[int(line[0])]) + " " + str(vertex_map[int(line[1])]) + " " + str(line[3]) + "\n"
     open(filename, "w").write(text)
 
 if __name__ == "__main__":
