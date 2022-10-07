@@ -340,7 +340,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
         putProcess(double(ts) / tmax, currentTime() - start_time);
         //if(ts==1)break;
     }
-        for(int lt=0;lt<tmax;lt++){
+        for(int lt=0;lt<=tmax;lt++){
             //std::cerr<<lt<<' '<<ts<<' '<<S[lt][ts-1].size()<<'\n';
             int len=actual_time[lt].size();
             for(int i=len-1;i>=0;i--){
