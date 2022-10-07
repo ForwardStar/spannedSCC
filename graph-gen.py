@@ -96,7 +96,7 @@ def normalize(filename):
         line = line.split()
         contents.append([line[0], line[1], int(line[len(line) - 1])])
     
-    # normalize
+    # normalize timestamps
     contents.sort(key=takeThird)
     contents[0].append(0)
     for i in range(1, len(contents)):
@@ -105,10 +105,24 @@ def normalize(filename):
         else:
             contents[i].append(contents[i - 1][3] + 1)
 
+    # normalize vertices
+    vertex_map = dict()
+    for content in contents:
+        u = int(content[0])
+        v = int(content[1])
+        if u not in vertex_map:
+            vertex_map[u] = 1
+        if v not in vertex_map:
+            vertex_map[v] = 1
+    order = 0
+    for key in vertex_map.keys():
+        vertex_map[key] = order
+        order += 1
+
     # wrap up
     text = ""
     for line in contents:
-        text += line[0] + " " + line[1] + " " + str(line[3]) + "\n"
+        text += vertex_map[int(line[0])] + " " + vertex_map[int(line[1])] + " " + str(line[3]) + "\n"
     open(filename, "w").write(text)
 
 if __name__ == "__main__":
