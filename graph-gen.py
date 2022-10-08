@@ -94,7 +94,7 @@ def normalize(filename):
         
         # omit the multiplicity of edges
         line = line.split()
-        contents.append([line[0], line[1], int(line[len(line) - 1])])
+        contents.append([line[0], line[1], float(line[len(line) - 1])])
     
     # normalize timestamps
     contents.sort(key=takeThird)
@@ -129,8 +129,7 @@ if __name__ == "__main__":
     # download datasets
     DATASETS_URL = ["http://konect.cc/files/download.tsv.dblp-cite.tar.bz2",
                     "http://konect.cc/files/download.tsv.flickr-growth.tar.bz2",
-                    "http://konect.cc/files/download.tsv.wikipedia-growth.tar.bz2",
-                    "http://snap.stanford.edu/data/sx-mathoverflow-a2q.txt.gz",
+                    "http://konect.cc/files/download.tsv.soc-sign-bitcoinotc.tar.bz2",
                     "https://snap.stanford.edu/data/email-Eu-core-temporal.txt.gz",
                     "https://snap.stanford.edu/data/CollegeMsg.txt.gz"]
     if os.path.isdir("datasets") is False or len(os.listdir("datasets")) < len(DATASETS_URL):
