@@ -86,6 +86,8 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
     
     std::stringstream Ans;
     std::vector<int> *CurrentCC = new std::vector<int>[n]();
+    markedVertices.clear();
+    markedVertices2.clear();
     
     Ans << "The spanned strongly connected components in [" << ts << ", " << te << "] are:\n";
     top=0;
