@@ -47,7 +47,7 @@ void TemporalGraph::addEdge(int u, int v, int t) {
 
 }
 
-TemporalGraph::TemporalGraph(char *graph_file, char *graph_type) {
+TemporalGraph::TemporalGraph(char *graph_file, char *graph_type, double factor) {
 
     int u, v, t;
     std::ifstream fin(graph_file);
@@ -65,6 +65,8 @@ TemporalGraph::TemporalGraph(char *graph_file, char *graph_type) {
         temporal_edge[t].push_back(std::make_pair(u, v));
     }
     ++n;
+
+    tmax *= factor;
     
 }
 

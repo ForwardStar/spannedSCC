@@ -64,7 +64,7 @@ class TemporalGraph {
         void addEdge(int u, int v, int t);
 
         TemporalGraph() {}
-        TemporalGraph(char *graph_file, char *graph_type);
+        TemporalGraph(char *graph_file, char *graph_type, double factor);
         TemporalGraph(TemporalGraph * Graph, int ts, int te);
         ~TemporalGraph();
 
