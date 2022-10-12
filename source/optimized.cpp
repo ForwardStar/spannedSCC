@@ -86,6 +86,8 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
     
     std::stringstream Ans;
     std::vector<int> *CurrentCC = new std::vector<int>[n]();
+    markedVertices.clear();
+    markedVertices2.clear();
     
     Ans << "The spanned strongly connected components in [" << ts << ", " << te << "] are:\n";
     top=0;
@@ -180,6 +182,8 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             outLabel[u].clear();
             outLabel2[u].clear();
             f[u]=u;
+            Vis[u]=0;
+            Vis2[u]=0;
         }
         for(int i=0;i<=tmax;i++)newedge[i].clear();
         for(auto g:key){
