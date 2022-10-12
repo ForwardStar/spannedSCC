@@ -182,6 +182,8 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph) {
             outLabel[u].clear();
             outLabel2[u].clear();
             f[u]=u;
+            Vis[u]=0;
+            Vis2[u]=0;
         }
         for(int i=0;i<=tmax;i++)newedge[i].clear();
         for(auto g:key){
