@@ -82,6 +82,40 @@ void OptimizedIndex::kosaraju4(int now, int ori, int ts){
         }
     }
 }
+
+int OptimizedIndex::find_an_index(int t, int ts, int te) {
+
+    int l = 0;
+    int r = actual_time[t].size() - 1;
+
+    if (r == -1 || actual_time[t][r] < ts || actual_time[t][0] > te) {
+        return -1;
+    }
+    
+    while (l < r) {
+        int mid = l + r >> 1;
+        if (actual_time[t][mid] >= ts && actual_time[t][mid] <= te) {
+            return mid;
+        }
+        else {
+            if (actual_time[t][mid] < ts) {
+                l = mid + 1;
+            }
+            else {
+                r = mid;
+            }
+        }
+    }
+
+    if (actual_time[t][l] >= ts && actual_time[t][l] <= te) {
+        return l;
+    }
+    else {
+        return -1;
+    }
+
+}
+
 std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
     
     std::stringstream Ans;
@@ -90,28 +124,49 @@ std::stringstream OptimizedIndex::solve(int n, int ts, int te) {
     markedVertices2.clear();
     
     Ans << "The spanned strongly connected components in [" << ts << ", " << te << "] are:\n";
-    top=0;
+
+    top = 0;
     
-    for(int u=0;u<n;u++){
-        Vis[u]=0;
+    for (int u = 0; u < n; u++) {
+        Vis[u] = 0;
         outLabel[u].clear();
         outLabel2[u].clear();
     }
-    int cnt=0;
-    for(int i=0;i<=ts;i++){
-        int l=actual_time[i].size();
-        for(int j=0;j<l;j++){
-            if(actual_time[i][j]<ts)continue;
-            if(G[i][j].empty())continue;
-            for(auto g:G[i][j]){
-                long long tim=g.second;
-                //if(tim<ts)continue;
-                if(tim>te)continue;
+
+    int cnt = 0;
+    for (int i = 0; i <= ts; i++) {
+        int idx = find_an_index(i, ts, te);
+        if (idx == -1) {
+            continue;
+        }
+        for (int j = idx; j >= 0; --j) {
+            if (actual_time[i][j] < ts) {
+                break;
+            }
+            for (auto g:G[i][j]) {
+                long long tm = g.second;
+                if (tm > te) {
+                    continue;
+                }
                 cnt++;
-                long long u=(g.first>>37),v=(g.first>>12)&(33554431ll);
+                long long u = (g.first >> 37), v = (g.first >> 12) & (33554431ll);
                 outLabel[u].push_back(g);
-                outLabel2[v].push_back(g); 
-                //std::cerr<<u<<' '<<v<<' '<<tim<<'\n';
+                outLabel2[v].push_back(g);
+            }
+        }
+        for (int j = idx; j < actual_time[i].size(); ++j) {
+            if (actual_time[i][j] > te) {
+                break;
+            }
+            for (auto g:G[i][j]) {
+                long long tm = g.second;
+                if (tm > te) {
+                    continue;
+                }
+                cnt++;
+                long long u = (g.first >> 37), v = (g.first >> 12) & (33554431ll);
+                outLabel[u].push_back(g);
+                outLabel2[v].push_back(g);
             }
         }
     }

@@ -7,6 +7,8 @@ class OptimizedIndex {
 
         // find(ts, u, id): find the label of u at time t(ts, u, id) with start time ts.
         int find(int u);
+
+        int find_an_index(int t, int ts, int te);
     
         // unioN(ts, u, v, t): perform the union operation on u and v at time t with start time ts.
 
