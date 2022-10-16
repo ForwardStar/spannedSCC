@@ -24,4 +24,6 @@ sh run.sh $1
 
 where ``$1`` is ``Online``, ``Baseline`` or ``Optimized``, indicating which solution to use.
 
+The ``Online`` option corresponds to the online algorithm in the paper; the ``Baseline`` option corresponds to D-baseline-index in the paper; the ``Optimized`` option corresponds to RES-index in the paper.
+
 The output is in the file ``output.txt``.

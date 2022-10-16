@@ -1,5 +1,38 @@
 #include "commonfunctions.h"
 
+void putSCCNumAndSize(int n, int *p) {
+    int *size = new int[n];
+    int *distribution = new int[n + 1];
+    for (int u = 0; u < n; ++u) {
+        size[u] = 0;
+        distribution[u] = 0;
+    }
+    distribution[n] = 0;
+    for (int u = 0; u < n; ++u) {
+        int now = u;
+        while (p[now] != now) {
+            now = p[now];
+        }
+        size[now]++;
+    }
+    int num = 0;
+    for (int i = 0; i < n; ++i) {
+        if (size[i] > 0) {
+            num++;
+            distribution[size[i]]++;
+        }
+    }
+    std::cout << "SCC num: " << num << std::endl;
+    std::cout << "SCC distribution: " << std::endl;
+    for (int i = 1; i <= n; ++i) {
+        if (distribution[i] > 0) {
+            std::cout << "  " << i << ": " << distribution[i] << std::endl;
+        }
+    }
+    delete [] size;
+    delete [] distribution;
+}
+
 void putProcess(double procedure, unsigned long long time_used) {
 
     std::cout << std::fixed << std::setprecision(3) << "Processing: " << procedure * 100 << "%" \
