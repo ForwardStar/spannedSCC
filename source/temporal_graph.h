@@ -63,6 +63,9 @@ class TemporalGraph {
         // addEdge(u, v, t): add an edge (u, v, t) to the graph.
         void addEdge(int u, int v, int t);
 
+        // size(): return the size (in bytes) of the graph.
+        int size();
+        
         TemporalGraph() {}
         TemporalGraph(char *graph_file, char *graph_type, double factor);
         TemporalGraph(TemporalGraph * Graph, int ts, int te);

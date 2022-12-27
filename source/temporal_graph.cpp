@@ -47,6 +47,11 @@ void TemporalGraph::addEdge(int u, int v, int t) {
 
 }
 
+int TemporalGraph::size() {
+    // Each edge consumes 8 bytes for 2 ints.
+    return 8 * m;
+}
+
 TemporalGraph::TemporalGraph(char *graph_file, char *graph_type, double factor) {
 
     int u, v, t;
