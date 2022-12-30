@@ -86,7 +86,7 @@ int main(int argc, char * argv[]) {
         std::cout << "Index construction completed in " << timeFormatting(index_construction_end_time - index_construction_start_time).str() << std::endl;
         std::cout << "Index cost " << Index->size() << " bytes" << std::endl;
         delete Graph;
-        for (int i = 2; i < argc - 1; i++) {
+        for (int i = 2; i < argc - 2; i++) {
             std::cout << "Solving queries..." << std::endl;
             unsigned long long query_start_time = currentTime();
             optimized(Index, vertex_num, argv[i], argv[argc - 2]);
