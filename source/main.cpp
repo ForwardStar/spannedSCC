@@ -74,7 +74,7 @@ int main(int argc, char * argv[]) {
         std::cout << "DC completed!" << std::endl;
     }
 
-    if (std::strcmp(argv[4], "Optimized") == 0) {
+    if (std::strcmp(argv[4], "RES") == 0) {
         std::cout << "Running optimized..." << std::endl;
         std::cout << "Constructing the index structure..." << std::endl;
         unsigned long long index_construction_start_time = currentTime();

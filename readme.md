@@ -22,6 +22,6 @@ sh query-gen.sh
 sh run.sh $1
 ```
 
-where ``$1`` is ``Online``, ``Baseline`` or ``Optimized``, corresponding to ``D-online``, ``D-baseline``, ``RES-index`` solutions, respectively.
+where ``$1`` is ``Online``, ``Baseline`` or ``RES``, corresponding to ``D-online``, ``D-baseline``, ``RES-index`` solutions, respectively.
 
 The output is in the file ``output.txt``.
