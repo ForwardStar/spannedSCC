@@ -46,9 +46,13 @@ int main(int argc, char * argv[]) {
         std::cout << "Running baseline..." << std::endl;
         std::cout << "Constructing the index structure..." << std::endl;
         unsigned long long index_construction_start_time = currentTime();
-        BaselineIndex *Index = new BaselineIndex(Graph);
+        BaselineIndex *Index = new BaselineIndex(Graph, 0.8);
         unsigned long long index_construction_end_time = currentTime();
         std::cout << "Index construction completed in " << timeFormatting(index_construction_end_time - index_construction_start_time).str() << std::endl;
+        unsigned long long index_update_start_time = currentTime();
+        Index->update(Graph);
+        unsigned long long index_update_end_time = currentTime();
+        std::cout << "Index update completed in " << timeFormatting(index_update_end_time - index_update_start_time).str() << std::endl;
         std::cout << "Index cost " << Index->size() << " bytes" << std::endl;
         delete Graph;
         for (int i = 2; i < argc - 2; i++) {
@@ -84,6 +88,10 @@ int main(int argc, char * argv[]) {
         OptimizedIndex *Index = new OptimizedIndex(Graph);
         unsigned long long index_construction_end_time = currentTime();
         std::cout << "Index construction completed in " << timeFormatting(index_construction_end_time - index_construction_start_time).str() << std::endl;
+        // unsigned long long index_update_start_time = currentTime();
+        // Index->update(Graph);
+        // unsigned long long index_update_end_time = currentTime();
+        // std::cout << "Index update completed in " << timeFormatting(index_update_end_time - index_update_start_time).str() << std::endl;
         std::cout << "Index cost " << Index->size() << " bytes" << std::endl;
         delete Graph;
         for (int i = 2; i < argc - 2; i++) {
@@ -95,6 +103,7 @@ int main(int argc, char * argv[]) {
         }
         std::cout << "Optimized completed!" << std::endl;
     }
+
     unsigned long long end_time = currentTime();
     std::cout << "Program finished in " << timeFormatting(difftime(end_time, start_time)).str() << std::endl;
 
