@@ -31,9 +31,12 @@ class OptimizedIndex {
         std::vector<std::pair<long long,int>> *outLabel, *outLabel2;
         std::vector<std::set<std::pair<long long,int>>>  *S;
         std::vector<int> *actual_time;
+        std::vector<int> *actual_time_temporal;
         std::vector<std::pair<long long,int>> *edge;
         std::vector<std::pair<long long,int>> tmpedge;
         std::vector<std::vector<std::pair<long long,int>>> *G;
+        std::vector<std::vector<std::pair<long long,int>>> *G_temporal;
+
         std::stack<int> Stack;
         std::vector<int> CC;
         std::vector<std::pair<long long,int>> *newedge;
@@ -44,12 +47,13 @@ class OptimizedIndex {
     public:
 
         // n, m, tmax: graph information.
-        int n, m, tmax;
+        int n, m, tmax, t1;
 
         std::stringstream solve(int n, int ts, int te);
-
+        void update(TemporalGraph * Graph);
+        void modify(TemporalGraph * Graph,int tpre,int tim);
         OptimizedIndex() {}
-        OptimizedIndex(TemporalGraph * Graph);
+        OptimizedIndex(TemporalGraph * Graph, double t_fraction);
         ~OptimizedIndex();
 
         unsigned long long size();
