@@ -407,9 +407,7 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph, double t_fraction) {
         }
        // std::cerr<<size()<<'\n';
        //std::cout<<ts<<' '<<size()<<'\n';
-        if (ts % 1000 == 0) {
-            putProcess(double(ts) / t1, currentTime() - start_time);
-        }
+        putProcess(double(ts) / t1, currentTime() - start_time);
         //if(ts==1)break;
     }
         for(int lt=0;lt<=t1;lt++){
