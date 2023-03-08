@@ -407,7 +407,9 @@ OptimizedIndex::OptimizedIndex(TemporalGraph * Graph, double t_fraction) {
         }
        // std::cerr<<size()<<'\n';
        //std::cout<<ts<<' '<<size()<<'\n';
-        putProcess(double(ts) / t1, currentTime() - start_time);
+        if (ts % 1000 == 0) {
+            putProcess(double(ts) / t1, currentTime() - start_time);
+        }
         //if(ts==1)break;
     }
         for(int lt=0;lt<=t1;lt++){
@@ -549,6 +551,8 @@ void OptimizedIndex::modify(TemporalGraph * Graph,int tpre,int tim){
                 }
         }
         for(int st=std::max(i,tpre+1);st<=tim;st++){
+            std::unordered_set<int> point;
+            point.clear();
             for(int i=0;i<n;i++){
                 Vis[i]=0;
                 Vis2[i]=0;
@@ -557,13 +561,14 @@ void OptimizedIndex::modify(TemporalGraph * Graph,int tpre,int tim){
                 int u=ed.first,v=ed.second;
                 if(find(u)==find(v))continue;
                 std::pair<long long,int> g=std::pair<long long,int>((((long long)u)<<37)+(((long long)v)<<12),st);
+                point.insert(find(u));
+                point.insert(find(v));
                 outLabel[find(u)].push_back(g);
                 outLabel2[find(v)].push_back(g);
             }
             top=0;
             col=0;
-            for(int u=0;u<n;u++){
-                int g=find(u);
+            for(auto g:point){
                 if(!Vis[g]){
                     kosaraju1(g);
                 }
