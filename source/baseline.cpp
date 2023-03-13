@@ -146,6 +146,7 @@ std::stringstream BaselineIndex::solve(int n, int ts, int te) {
 void BaselineIndex::update(TemporalGraph * Graph) {
     outOfStack = new bool[n];
     Vis = new bool[n];
+    num = new int[n];
     inOrder = new int[n];
     outOrder = new int[n];
     lowestOrder = new int[n];
@@ -162,16 +163,20 @@ void BaselineIndex::update(TemporalGraph * Graph) {
 
     for (int ts = 0; ts <= tmax; ts++) {
         for (int u = 0; u < n; ++u) {
+            num[u] = 0;
+        }
+        for (int u = 0; u < n; ++u) {
             outLabel[u].clear();
             outOfStack[u] = 0;
             if (find(ts, u) != u) {
                 Vis[u] = 1;
+                num[find(ts, u)] += 1;
             }
             else {
                 Vis[u] = 0;
+                num[u] += 1;
             }
         }
-
         std::vector<std::pair<int, int>>::iterator it;
         for (int te = ts; te <= std::max(ts, t1 + 1); ++te) { 
             for (it = Graph->temporal_edge[te].begin(); it != Graph->temporal_edge[te].end(); it++) {
@@ -182,14 +187,12 @@ void BaselineIndex::update(TemporalGraph * Graph) {
                 }
             }
         }
-
         int t = 0;
         for (int u = 0; u < n; ++u) {
             if (!Vis[u]) {
                 tarjan(u, t, ts, std::max(ts, t1 + 1));
             }
         }
-
         for (int te = std::max(ts, t1 + 1) + 1; te <= tmax; ++te) {
             t = 0;
             for (int u = 0; u < n; ++u) {
@@ -225,6 +228,7 @@ void BaselineIndex::update(TemporalGraph * Graph) {
 
     delete [] outOfStack;
     delete [] Vis;
+    delete [] num;
     delete [] inOrder;
     delete [] outOrder;
     delete [] lowestOrder;
