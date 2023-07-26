@@ -5,11 +5,13 @@
 #include "divide_and_conquer.h"
 #include "optimized.h"
 
-TemporalGraph * build(char * argv[]) {
+bool debug = false;
+
+TemporalGraph * build(char * argv[], double subgraph_fraction) {
 
     std::cout << "Building graph..." << std::endl;
     unsigned long long build_graph_start_time = currentTime();
-    TemporalGraph * Graph = new TemporalGraph(argv[1], (char *)"Directed", 1);
+    TemporalGraph * Graph = new TemporalGraph(argv[1], (char *)"Directed", subgraph_fraction);
     unsigned long long build_graph_end_time = currentTime();
     std::cout << "Build graph success in " << timeFormatting(build_graph_end_time - build_graph_start_time).str() << std::endl;
     std::cout << "n = " << Graph->numOfVertices() << ", m = " << Graph->numOfEdges() << ", tmax = " << Graph->tmax << ", size = " << Graph->size() << " bytes" << std::endl;
@@ -23,12 +25,31 @@ int main(int argc, char * argv[]) {
 
     unsigned long long start_time = currentTime();
 
-    if (argc != 5) {//revise
+    double update_fraction = 0.0;
+    double subgraph_fraction = 1.0;
+
+    if (std::strcmp(argv[argc - 1], "Debug") == 0) {
+        debug = true;
+        argc--;
+    }
+
+    if (argc == 6 && std::strcmp(argv[argc - 1], "update") == 0) {
+        std::cout << "Index update mode enabled. Please input the fraction of timestamps to update (0 < x < 1): ";
+        std::cin >> update_fraction;
+        argc--;
+    }
+
+    if (argc == 6 && std::strcmp(argv[argc - 1], "subgraph") == 0) {
+        std::cout << "Subgraph mode enabled. Please input the fraction of timestamps in the subgraph (0 < x < 1): ";
+        std::cin >> subgraph_fraction;
+        argc--;
+    }
+
+    if (argc != 5) {
         std::cout << "Parameters are non-standard. Please check the readme file." << std::endl;
     }
 
-    TemporalGraph * Graph = build(argv);
-    // Graph->shrink_to_fit();
+    TemporalGraph * Graph = build(argv, subgraph_fraction);
     int vertex_num = Graph->numOfVertices();
 
     if (std::strcmp(argv[argc - 1], "Online") == 0) {
@@ -46,9 +67,22 @@ int main(int argc, char * argv[]) {
         std::cout << "Running baseline..." << std::endl;
         std::cout << "Constructing the index structure..." << std::endl;
         unsigned long long index_construction_start_time = currentTime();
-        BaselineIndex *Index = new BaselineIndex(Graph, 1);
+        BaselineIndex *Index = new BaselineIndex(Graph, 1 - update_fraction);
         unsigned long long index_construction_end_time = currentTime();
         std::cout << "Index construction completed in " << timeFormatting(index_construction_end_time - index_construction_start_time).str() << std::endl;
+        if (update_fraction > 0) {
+            std::cout << "Updating the index structure..." << std::endl;
+            int t1 = int(Graph->tmax * (1 - update_fraction));
+            int num_of_edges = 0;
+            for (int t = t1 + 1; t <= Graph->tmax; t++) {
+                num_of_edges += Graph->temporal_edge[t].size();
+            }
+            std::cout << "Number of edges to be updated: " << num_of_edges << std::endl;
+            unsigned long long index_update_start_time = currentTime();
+            Index->update(Graph);
+            unsigned long long index_update_end_time = currentTime();
+            std::cout << "Index update completed in " << timeFormatting(index_update_end_time - index_update_start_time).str() << std::endl;
+        }
         std::cout << "Index cost " << Index->size() << " bytes" << std::endl;
         delete Graph;
         for (int i = 2; i < argc - 2; i++) {
@@ -61,22 +95,6 @@ int main(int argc, char * argv[]) {
         std::cout << "Baseline completed!" << std::endl;
     }
 
-    // if (std::strcmp(argv[argc - 1], "DC") == 0) {
-    //     std::cout << "Running DC..." << std::endl;
-    //     std::cout << "Constructing the index structure..." << std::endl;
-    //     unsigned long long index_construction_start_time = currentTime();
-    //     DCIndex *Index = new DCIndex(Graph);
-    //     unsigned long long index_construction_end_time = currentTime();
-    //     std::cout << "Index construction completed in " << timeFormatting(index_construction_end_time - index_construction_start_time).str() << std::endl;
-    //     delete Graph;
-    //     std::cout << "Solving queries..." << std::endl;
-    //     unsigned long long query_start_time = currentTime();
-    //     DC(Index, vertex_num, argv[2], argv[3]);
-    //     unsigned long long query_end_time = currentTime();
-    //     std::cout << "Query completed in " << timeFormatting(query_end_time - query_start_time).str() << std::endl;
-    //     std::cout << "DC completed!" << std::endl;
-    // }
-
     if (std::strcmp(argv[argc - 1], "RES") == 0) {
         std::cout << "Running optimized..." << std::endl;
         std::cout << "Constructing the index structure..." << std::endl;
@@ -84,6 +102,19 @@ int main(int argc, char * argv[]) {
         OptimizedIndex *Index = new OptimizedIndex(Graph, 1);
         unsigned long long index_construction_end_time = currentTime();
         std::cout << "Index construction completed in " << timeFormatting(index_construction_end_time - index_construction_start_time).str() << std::endl;
+        if (update_fraction > 0) {
+            std::cout << "Updating the index structure..." << std::endl;
+            int t1 = int(Graph->tmax * (1 - update_fraction));
+            int num_of_edges = 0;
+            for (int t = t1 + 1; t <= Graph->tmax; t++) {
+                num_of_edges += Graph->temporal_edge[t].size();
+            }
+            std::cout << "Number of edges to be updated: " << num_of_edges << std::endl;
+            unsigned long long index_update_start_time = currentTime();
+            Index->update(Graph);
+            unsigned long long index_update_end_time = currentTime();
+            std::cout << "Index update completed in " << timeFormatting(index_update_end_time - index_update_start_time).str() << std::endl;
+        }
         std::cout << "Index cost " << Index->size() << " bytes" << std::endl;
         delete Graph;
         for (int i = 2; i < argc - 2; i++) {
