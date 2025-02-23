@@ -7,6 +7,8 @@ class OptimizedIndex {
 
         // find(ts, u, id): find the label of u at time t(ts, u, id) with start time ts.
         int find(int u);
+
+        int find_an_index(int t, int ts, int te);
     
         // unioN(ts, u, v, t): perform the union operation on u and v at time t with start time ts.
 
@@ -15,21 +17,35 @@ class OptimizedIndex {
         void kosaraju5(int now);
         void kosaraju2(int now, int ts);
         void kosaraju4(int now, int ori,int ts);
-        int top,col;
+        int top,col,len;
         int *inOrder;
         int *outOrder;
         int *lowestOrder;
         int *Sta;
         int *Vis,*Vis2;
         int *f;
-
+        struct RES{
+            std::pair<long long,int> edge;
+            int ts;
+            RES(std::pair<long long,int> e, int t){
+                edge=e;
+                ts=t;
+            }
+        };
+        static bool cmp(RES a, RES b);
+        std::vector<int> markedVertices;
+        std::vector<int> markedVertices2;
         std::set<std::pair<long long,int>> key;
         std::vector<std::pair<long long,int>> *outLabel, *outLabel2;
-        std::vector<std::set<std::pair<long long,int>>>  *S;
+        std::map<std::pair<long long,int>,std::pair<int,int> >  S;
         std::vector<int> *actual_time;
+        std::vector<int> *actual_time_temporal;
         std::vector<std::pair<long long,int>> *edge;
         std::vector<std::pair<long long,int>> tmpedge;
-        std::vector<std::vector<std::pair<long long,int>>> *G;
+        std::vector<RES> *G;
+        std::vector<RES> *Chunk;
+        //std::vector<std::vector<std::pair<long long,int>>> *G_temporal;
+
         std::stack<int> Stack;
         std::vector<int> CC;
         std::vector<std::pair<long long,int>> *newedge;
@@ -40,12 +56,13 @@ class OptimizedIndex {
     public:
 
         // n, m, tmax: graph information.
-        int n, m, tmax;
+        int n, m, tmax, t1;
 
         std::stringstream solve(int n, int ts, int te);
-
+       void update(TemporalGraph * Graph);
+       void modify(TemporalGraph * Graph,int tpre,int tim);
         OptimizedIndex() {}
-        OptimizedIndex(TemporalGraph * Graph);
+        OptimizedIndex(TemporalGraph * Graph, double t_fraction);
         ~OptimizedIndex();
 
         unsigned long long size();
