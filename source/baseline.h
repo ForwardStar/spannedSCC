@@ -11,7 +11,7 @@ class BaselineIndex {
         // unioN(ts, u, v, t): perform the union operation on u and v at time t with start time ts.
         void unioN(int ts, int u, int v, int t);
 
-        void tarjan(int now, int &t, int &ts, int &te);
+        void tarjan(int now, int &t, int &ts, int te);
 
         int *inOrder;
         int *outOrder;
@@ -26,7 +26,7 @@ class BaselineIndex {
     public:
 
         // n, m, tmax: graph information.
-        int n, m, tmax;
+        int n, m, tmax, t1;
         
         int **L;
         int **T;
@@ -34,8 +34,10 @@ class BaselineIndex {
 
         std::stringstream solve(int n, int ts, int te);
 
+        void update(TemporalGraph * Graph);
+
         BaselineIndex() {}
-        BaselineIndex(TemporalGraph * Graph);
+        BaselineIndex(TemporalGraph * Graph, double t_fraction);
         ~BaselineIndex();
 
         unsigned long long size();

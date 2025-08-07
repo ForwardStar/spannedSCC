@@ -18,6 +18,8 @@
 #include <queue>
 #include <list>
 
+void putSCCNumAndSize(int n, int *p);
+
 void putProcess(double procedure, unsigned long long time_used);
 
 std::stringstream timeFormatting(unsigned long long seconds);
