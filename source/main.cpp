@@ -99,7 +99,7 @@ int main(int argc, char * argv[]) {
         std::cout << "Running optimized..." << std::endl;
         std::cout << "Constructing the index structure..." << std::endl;
         unsigned long long index_construction_start_time = currentTime();
-        OptimizedIndex *Index = new OptimizedIndex(Graph, 1);
+        OptimizedIndex *Index = new OptimizedIndex(Graph, 1 - update_fraction);
         unsigned long long index_construction_end_time = currentTime();
         std::cout << "Index construction completed in " << timeFormatting(index_construction_end_time - index_construction_start_time).str() << std::endl;
         if (update_fraction > 0) {
@@ -113,6 +113,9 @@ int main(int argc, char * argv[]) {
             unsigned long long index_update_start_time = currentTime();
             Index->update(Graph);
             unsigned long long index_update_end_time = currentTime();
+            unsigned long long time_cost = index_update_end_time - index_update_start_time;
+            std::cout << "Index update completed in " << timeFormatting(index_update_end_time - index_update_start_time).str() << std::endl;
+            std::cout << "Average time cost for updating one edge: " << double(1.0 * time_cost / num_of_edges) << std::endl;
             std::cout << "Index update completed in " << timeFormatting(index_update_end_time - index_update_start_time).str() << std::endl;
         }
         std::cout << "Index cost " << Index->size() << " bytes" << std::endl;
@@ -133,3 +136,4 @@ int main(int argc, char * argv[]) {
     return 0;
 
 }
+// g++ main.cpp online_search.cpp divide_and_conquer.cpp optimized.cpp temporal_graph.cpp baseline.cpp commonfunctions.cpp -o main -O3 -std=c++11
