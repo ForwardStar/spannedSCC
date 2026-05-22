@@ -1,5 +1,7 @@
 ## Window-SCC solutions
 
+**2026/06 update: [``journal extension``](https://doi.org/10.1007/s00778-026-00977-5) is published. The query complexity is reduced from O(n + t) to O(n + sqrt(t)).**
+
 **2025/08 update: We updated RES with a faster query algorithm for journal extension. To evaluate the algorithms for the conference version, use the commit ``29afeb3e09da73259dd71b2ab89f1c5a651a0d54``.**
 
 This is one of the code repositories of the paper [``On Querying Connected Components in Large Temporal Graphs``](https://dl.acm.org/doi/10.1145/3589315) (SIGMOD 2023) for window-SCC solutions for directed graphs. The window-CC solutions for undirected graphs are in [another repository](https://github.com/ForwardStar/spannedCC).
